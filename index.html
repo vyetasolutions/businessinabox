@@ -43,7 +43,7 @@
     <!-- Nav Items -->
     <div class="flex md:flex-col justify-around md:justify-start gap-2 w-full">
       <button onclick="switchView('dashboard')" id="nav-dashboard" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 w-full transition-all group">
-        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>My Business At A Glance</span>
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
       </button>
       <button onclick="switchView('generator')" id="nav-generator" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group">
         <i data-lucide="file-plus-2" class="w-5 h-5"></i><span>Create Doc</span>
@@ -394,7 +394,7 @@
       const breadcrumb = document.getElementById('view-breadcrumb');
       const title = document.getElementById('view-title');
       
-      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Dashboard'; refreshDashboardMetrics(); }
+      if (viewId === 'dashboard') { breadcrumb.innerText = 'Powered By Vyeta'; title.innerText = 'Dashboard'; refreshDashboardMetrics(); }
       if (viewId === 'generator') { breadcrumb.innerText = 'Create'; title.innerText = 'New Document'; populateCustomerDataDatalists(); }
       if (viewId === 'crm') { breadcrumb.innerText = 'People'; title.innerText = 'Customers'; renderCrmTableLogs(); }
       if (viewId === 'settings') { breadcrumb.innerText = 'Settings'; title.innerText = 'Business Profile'; }
