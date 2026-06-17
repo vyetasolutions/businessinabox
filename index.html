@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vyeta Docs - Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc; --surface: rgba(255, 255, 255, 0.7);
+      --text: #0f172a; --text-muted: #64748b;
+      --border: rgba(226, 232, 240, 0.8); --accent: #2563eb;
+    }
+    [data-theme="dark"] {
+      --bg: #020617; --surface: rgba(15, 23, 42, 0.7);
+      --text: #f8fafc; --text-muted: #94a3b8;
+      --border: rgba(30, 41, 59, 0.8); --accent: #3b82f6;
+    }
+    body {
+      font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+      margin: 0; padding: 20px; transition: 0.3s;
+    }
+    .container { max-width: 600px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .glass-card {
+      background: var(--surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 14px; margin-bottom: 6px; color: var(--text-muted); }
+    input, select {
+      width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif; box-sizing: border-box;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    
+    .item-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .totals-box { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
+    .total-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+    .grand-total { font-size: 18px; font-weight: 600; margin-top: 12px; }
+    
+    .btn {
+      width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); margin-bottom: 16px;}
+    
+    #successState { display: none; text-align: center; }
+  </style>
+</head>
+<body>
 
+<div class="container">
+  <div class="header">
+    <h2 style="margin:0;">Vyeta Docs</h2>
+    <button onclick="toggleTheme()" style="background:none; border:none; color:var(--text); cursor:pointer; font-size: 20px;">🌓</button>
+  </div>
+
+  <div class="glass-card" id="formState">
+    <form id="vyetaForm">
+      <div class="form-group">
+        <label>Document Type</label>
+        <select id="docType">
+          <option value="Invoice">Invoice</option>
+          <option value="Quotation">Quotation</option>
+          <option value="Receipt">Receipt</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="customerName" required placeholder="e.g., Acme Corp">
+      </div>
+
+      <div class="form-group">
+        <label>Line Items</label>
+        <div id="itemsContainer">
+          <div class="item-row">
+            <input type="text" class="item-desc" placeholder="Description" required>
+            <input type="number" class="item-price" placeholder="Amount (ZMW)" oninput="calculateTotals()" required>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="addItem()">+ Add Item</button>
+      </div>
+
+      <div class="form-group">
+        <label>Tax / VAT Rate (%)</label>
+        <input type="number" id="taxRate" value="0" oninput="calculateTotals()">
+      </div>
+
+      <div class="totals-box">
+        <div class="total-line"><span>Subtotal</span> <span id="uiSubtotal">K 0.00</span></div>
+        <div class="total-line"><span>Tax</span> <span id="uiTax">K 0.00</span></div>
+        <div class="total-line grand-total"><span>Total</span> <span id="uiTotal">K 0.00</span></div>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn" style="margin-top: 20px;">Generate Document</button>
+    </form>
+  </div>
+
+  <div class="glass-card" id="successState">
+    <h3 style="color: #10b981; margin-top:0;">Document Ready!</h3>
+    <p style="color: var(--text-muted);">Saved securely to your Google Drive.</p>
+    <a id="pdfLink" href="#" target="_blank" class="btn" style="display:block; text-decoration:none; margin-bottom:12px;">📄 Open PDF</a>
+    <button onclick="resetForm()" class="btn btn-secondary">Create Another</button>
+  </div>
+</div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyI2HOFGAzU5eibX4g5oUCdx8J1i875aAAY6Tw_w3XnzdzSdO7JYSy2W0K-qIAfFWhYRg/exec'; // <-- PASTE SCRIPT URL HERE
+
+  // Theme Toggle
+  function toggleTheme() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  }
+
+  // Dynamic Line Items
+  function addItem() {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <input type="text" class="item-desc" placeholder="Description" required>
+      <input type="number" class="item-price" placeholder="Amount (ZMW)" oninput="calculateTotals()" required>
+    `;
+    document.getElementById('itemsContainer').appendChild(row);
+  }
+
+  // Self-Tabulating Math Logic (Prevents Mismatches)
+  let currentTotals = { subtotal: 0, taxAmount: 0, total: 0, items: [] };
+
+  function calculateTotals() {
+    const descs = document.querySelectorAll('.item-desc');
+    const prices = document.querySelectorAll('.item-price');
+    const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+    
+    let subtotal = 0;
+    let items = [];
+
+    for (let i = 0; i < prices.length; i++) {
+      const price = parseFloat(prices[i].value) || 0;
+      subtotal += price;
+      if (descs[i].value || price > 0) {
+        items.push({ desc: descs[i].value || 'Item', total: price });
+      }
+    }
+
+    const taxAmount = subtotal * (taxRate / 100);
+    const total = subtotal + taxAmount;
+
+    // Update State
+    currentTotals = { subtotal, taxAmount, total, items, taxRate };
+
+    // Update UI
+    document.getElementById('uiSubtotal').innerText = `K ${subtotal.toFixed(2)}`;
+    document.getElementById('uiTax').innerText = `K ${taxAmount.toFixed(2)}`;
+    document.getElementById('uiTotal').innerText = `K ${total.toFixed(2)}`;
+  }
+
+  // Form Submission
+  document.getElementById('vyetaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    calculateTotals(); // Final check
+    
+    const btn = document.getElementById('submitBtn');
+    btn.innerText = 'Generating PDF...';
+    btn.disabled = true;
+
+    const payload = {
+      businessName: 'Vyeta Digital Solutions',
+      docType: document.getElementById('docType').value,
+      customerName: document.getElementById('customerName').value,
+      items: currentTotals.items,
+      subtotal: currentTotals.subtotal,
+      taxRate: currentTotals.taxRate,
+      taxAmount: currentTotals.taxAmount,
+      total: currentTotals.total
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        // 'text/plain' prevents complex CORS preflight issues on some devices
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      
+      const result = await response.json();
+      
+      if(result.success) {
+        document.getElementById('formState').style.display = 'none';
+        document.getElementById('successState').style.display = 'block';
+        document.getElementById('pdfLink').href = result.pdfUrl;
+      } else {
+        alert('Error: ' + result.error);
+      }
+    } catch (error) {
+      alert('Network error. Ensure Web App is deployed as "Anyone".');
+    } finally {
+      btn.innerText = 'Generate Document';
+      btn.disabled = false;
+    }
+  });
+
+  function resetForm() {
+    document.getElementById('vyetaForm').reset();
+    document.getElementById('itemsContainer').innerHTML = `
+      <div class="item-row">
+        <input type="text" class="item-desc" placeholder="Description" required>
+        <input type="number" class="item-price" placeholder="Amount (ZMW)" oninput="calculateTotals()" required>
+      </div>`;
+    calculateTotals();
+    document.getElementById('formState').style.display = 'block';
+    document.getElementById('successState').style.display = 'none';
+  }
+</script>
+</body>
+</html>
