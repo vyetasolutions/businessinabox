@@ -277,8 +277,8 @@
           <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <i data-lucide="badge-check" class="w-6 h-6"></i>
           </div>
-          <h3 class="text-xl font-bold tracking-tight">Processing Matrix Succeeded!</h3>
-          <p class="text-xs text-slate-400 dark:text-slate-500">Your custom file engine output instance is fully generated.</p>
+         <h3 class="text-xl font-bold tracking-tight">Document Ready!</h3>
+<p class="text-xs text-slate-400 dark:text-slate-500">Your document has been successfully created and saved.</p>
         </div>
 
         <div class="space-y-2">
@@ -288,9 +288,9 @@
           <a id="modalWhatsappLink" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#22c35e] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
             <i data-lucide="message-square" class="w-4 h-4"></i> Share directly to WhatsApp
           </a>
-          <button onclick="closeSuccessModalStage()" class="w-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-medium py-3 rounded-xl transition-all text-sm">
-            Dismiss to Dashboard Terminal
-          </button>
+         <button onclick="closeSuccessModalStage()" class="...">
+  Back to Dashboard
+</button>
         </div>
       </div>
     </div>
@@ -447,7 +447,7 @@
       
       const btn = document.getElementById('masterSubmitButton');
       const originalText = btn.innerHTML;
-      btn.innerHTML = `Processing Secure Network Arrays...`;
+     btn.innerHTML = `Generating document...`;
       btn.disabled = true;
 
       const networkPayload = {
@@ -520,7 +520,7 @@
         banking: document.getElementById('settingBanking').value || ''
       };
       localStorage.setItem('vyeta_profile', JSON.stringify(systemState.profile));
-      alert("Local profile memory arrays updated successfully.");
+     alert("Business profile updated successfully!");
       switchView('dashboard');
     }
 
@@ -542,7 +542,7 @@
 
       const container = document.getElementById('recent-activity-container');
       if (systemState.documents.length === 0) {
-        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400">Empty system log matrix.</p>`;
+        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400">No documents generated yet.</p>`;
       } else {
         container.innerHTML = systemState.documents.slice(0, 5).map(doc => `
           <div class="p-4 sm:px-6 hover:bg-slate-100/30 dark:hover:bg-slate-900/30 flex justify-between items-center text-xs sm:text-sm transition-colors">
@@ -578,7 +578,7 @@
       const entries = Object.entries(crmMap);
 
       if (entries.length === 0) {
-        body.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400">Directory contains no compiled vectors.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400">No customers saved yet.</td></tr>`;
       } else {
         body.innerHTML = entries.map(([name, data]) => `
           <tr class="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 text-xs sm:text-sm transition-colors">
