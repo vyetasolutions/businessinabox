@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vyeta Docs — SME Operating System</title>
+  <title>Vyeta Docs — Simple Business Generator</title>
   <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -36,11 +36,11 @@
       <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30">V</div>
       <div>
         <h1 class="font-bold tracking-tight text-sm">Vyeta Docs</h1>
-        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium tracking-wider uppercase">SME Operating System</p>
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium tracking-wider uppercase">For Small Businesses</p>
       </div>
     </div>
 
-    <!-- Nav Items Matrix -->
+    <!-- Nav Items -->
     <div class="flex md:flex-col justify-around md:justify-start gap-2 w-full">
       <button onclick="switchView('dashboard')" id="nav-dashboard" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 w-full transition-all group">
         <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
@@ -52,11 +52,11 @@
         <i data-lucide="users" class="w-5 h-5"></i><span>Customers</span>
       </button>
       <button onclick="switchView('settings')" id="nav-settings" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group">
-        <i data-lucide="settings" class="w-5 h-5"></i><span>Profile Setup</span>
+        <i data-lucide="settings" class="w-5 h-5"></i><span>Business Profile</span>
       </button>
     </div>
 
-    <!-- Core Utility Controls -->
+    <!-- Core Controls -->
     <div class="hidden md:flex flex-col gap-4 w-full pt-4 border-t border-slate-200 dark:border-slate-800">
       <button onclick="toggleTheme()" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full text-left transition-all">
         <i data-lucide="sun-moon" class="w-5 h-5"></i><span>Toggle Theme</span>
@@ -64,10 +64,10 @@
     </div>
   </nav>
 
-  <!-- ================= VIEW WRAPPER CONTAINER ================= -->
+  <!-- ================= MAIN CONTENT ================= -->
   <main class="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto transition-all">
 
-    <!-- Header Interface Block -->
+    <!-- Header -->
     <div class="flex justify-between items-center mb-8">
       <div>
         <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase" id="view-breadcrumb">Overview</span>
@@ -80,44 +80,44 @@
 
     <!-- ================= VIEW: DASHBOARD ================= -->
     <section id="view-section-dashboard" class="view-pane space-y-6 animate-fade-in">
-      <!-- High-Fidelity Executive Metrics Rows -->
+      <!-- Quick Stats -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
           <div class="absolute right-0 top-0 p-6 opacity-10 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
             <i data-lucide="wallet" class="w-16 h-16"></i>
           </div>
-          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Collected (MTD)</span>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Received</span>
           <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-collected">K 0.00</h3>
           <span class="text-xs text-emerald-500 font-medium flex items-center gap-1 mt-2">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +12.4% vs last month
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Keep it up!
           </span>
         </div>
         <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
           <div class="absolute right-0 top-0 p-6 opacity-10 text-amber-500 group-hover:scale-110 transition-transform duration-300">
             <i data-lucide="clock" class="w-16 h-16"></i>
           </div>
-          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Outstanding Receivables</span>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Unpaid Invoices</span>
           <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-outstanding">K 0.00</h3>
           <span class="text-xs text-amber-500 font-medium flex items-center gap-1 mt-2">
-            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Action required
+            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Awaiting payment
           </span>
         </div>
         <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
           <div class="absolute right-0 top-0 p-6 opacity-10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
             <i data-lucide="file-text" class="w-16 h-16"></i>
           </div>
-          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Active Quotations</span>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sent Quotes</span>
           <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-quotes">0</h3>
           <span class="text-xs text-purple-500 font-medium flex items-center gap-1 mt-2">
-            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i> Ready to convert
+            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i> Pending approval
           </span>
         </div>
       </div>
 
-      <!-- Advanced Functional Analytic Panels -->
+      <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="glass-card p-6 rounded-2xl lg:col-span-2">
-          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Revenue Performance Flow</h4>
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Revenue Trend</h4>
           <div class="h-64 relative">
             <canvas id="analyticsChart"></canvas>
           </div>
@@ -125,7 +125,7 @@
         
         <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
           <div>
-            <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Document Status Split</h4>
+            <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Documents Created</h4>
             <div class="h-48 relative flex items-center justify-center">
               <canvas id="pieChart"></canvas>
             </div>
@@ -133,17 +133,16 @@
         </div>
       </div>
 
-      <!-- Comprehensive Recent Audit Feeds -->
+      <!-- Recent Activity -->
       <div class="glass-card rounded-2xl overflow-hidden">
         <div class="p-6 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-center">
-          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Recent Enterprise Activity Log</h4>
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Recent Activity</h4>
           <button onclick="switchView('generator')" class="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline">
-            New Transaction <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            New Doc <i data-lucide="plus" class="w-3.5 h-3.5"></i>
           </button>
         </div>
         <div class="divide-y divide-slate-100 dark:divide-slate-800/60 overflow-x-auto no-scrollbar" id="recent-activity-container">
-          <!-- Dynamic logs inject here -->
-          <p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">No active records detected. Tap 'Create Doc' to initiate ledger tracks.</p>
+          <p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">Nothing here yet. Click 'Create Doc' to get started.</p>
         </div>
       </div>
     </section>
@@ -151,45 +150,44 @@
     <!-- ================= VIEW: DOCUMENT GENERATOR ================= -->
     <section id="view-section-generator" class="view-pane hidden space-y-6 max-w-4xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Configuration Workspace Area -->
+        <!-- Form Area -->
         <div class="lg:col-span-2 space-y-6">
           <form id="masterDocForm" onsubmit="handleDocSubmission(event)" class="space-y-6">
-            <!-- Metadata Selection Blocks -->
+            <!-- Basic Info -->
             <div class="glass-card p-6 rounded-2xl space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Instrument Architecture Type</label>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Document Type</label>
                   <select id="docType" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    <option value="Invoice">Tax Invoice</option>
-                    <option value="Quotation">Commercial Quotation</option>
-                    <option value="Receipt">Official Payment Receipt</option>
-                    <option value="Delivery Note">Delivery Order Note</option>
+                    <option value="Invoice">Invoice</option>
+                    <option value="Quotation">Quotation</option>
+                    <option value="Receipt">Receipt</option>
+                    <option value="Delivery Note">Delivery Note</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Target Customer Entity</label>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Customer Name</label>
                   <div class="relative">
-                    <input type="text" id="customerName" placeholder="Search or input new buyer name" list="customerHistoryList" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <input type="text" id="customerName" placeholder="e.g., John Doe or Acme Corp" list="customerHistoryList" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                     <datalist id="customerHistoryList"></datalist>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Native Tabulating Multi-Row Matrices Setup -->
+            <!-- Items -->
             <div class="glass-card p-6 rounded-2xl space-y-4">
               <div class="flex justify-between items-center mb-2">
-                <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Itemized Line Matrix Accounts</label>
+                <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Items & Services</label>
                 <button type="button" onclick="addNewLineItem()" class="text-xs font-medium bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                  <i data-lucide="list-plus" class="w-3.5 h-3.5"></i> Add Row
+                  <i data-lucide="list-plus" class="w-3.5 h-3.5"></i> Add Item
                 </button>
               </div>
               
               <div id="itemsMatrixContainer" class="space-y-3">
-                <!-- Master Entry Row Instance Definition -->
                 <div class="grid grid-cols-12 gap-2 items-center dynamic-item-row group">
                   <div class="col-span-6 sm:col-span-7">
-                    <input type="text" placeholder="Product details / Service ledger" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <input type="text" placeholder="Description of item or service" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                   </div>
                   <div class="col-span-2">
                     <input type="number" placeholder="Qty" value="1" min="1" oninput="runMatrixCalculations()" required class="item-qty w-full text-center bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
@@ -206,39 +204,39 @@
               </div>
             </div>
 
-            <!-- Adjustments Settings Section -->
+            <!-- Tax and Discount -->
             <div class="glass-card p-6 rounded-2xl">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Government Value Added Tax / ZRA VAT (%)</label>
-                  <input type="number" id="taxRate" value="16" min="0" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Tax / VAT (%)</label>
+                  <input type="number" id="taxRate" value="0" min="0" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Discretionary Global Discount Deduction (%)</label>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Discount (%)</label>
                   <input type="number" id="discountRate" value="0" min="0" max="100" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
               </div>
             </div>
 
             <button type="submit" id="masterSubmitButton" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all">
-              <i data-lucide="file-check-2" class="w-5 h-5"></i> Execute and Compile Document Document
+              <i data-lucide="file-check-2" class="w-5 h-5"></i> Create Document
             </button>
           </form>
         </div>
 
-        <!-- Realtime Transaction Escrow Matrix Summaries -->
+        <!-- Summary Area -->
         <div class="space-y-4">
           <div class="glass-card p-6 rounded-2xl sticky top-6">
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Live System Tabulation Ledger</span>
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Document Summary</span>
             
             <div class="mt-6 space-y-4 border-b border-slate-100 dark:border-slate-800/60 pb-4">
               <div class="flex justify-between text-sm"><span class="text-slate-400">Subtotal</span><span class="font-medium" id="summarySubtotal">K 0.00</span></div>
-              <div class="flex justify-between text-sm"><span class="text-slate-400 text-rose-400">Discount Break</span><span class="font-medium text-rose-500" id="summaryDiscount">- K 0.00</span></div>
-              <div class="flex justify-between text-sm"><span class="text-slate-400">Tax Liabilities</span><span class="font-medium" id="summaryTax">K 0.00</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-400 text-rose-400">Discount</span><span class="font-medium text-rose-500" id="summaryDiscount">- K 0.00</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-400">Tax</span><span class="font-medium" id="summaryTax">K 0.00</span></div>
             </div>
 
             <div class="flex justify-between items-center mt-4">
-              <span class="text-sm font-semibold tracking-tight">Net Total Realized</span>
+              <span class="text-sm font-semibold tracking-tight">Total Amount</span>
               <span class="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400" id="summaryNetTotal">K 0.00</span>
             </div>
           </div>
@@ -246,24 +244,24 @@
       </div>
     </section>
 
-    <!-- ================= VIEW: LITE CRM MANAGEMENT ================= -->
+    <!-- ================= VIEW: CUSTOMERS ================= -->
     <section id="view-section-crm" class="view-pane hidden space-y-6">
       <div class="glass-card rounded-2xl overflow-hidden">
         <div class="p-6 border-b border-slate-100 dark:border-slate-800/60">
-          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Saved Client Accounts Matrix</h4>
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Saved Customers</h4>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-500 dark:text-slate-400">
             <thead class="bg-slate-100/40 dark:bg-slate-900/40 text-xs text-slate-400 uppercase font-semibold">
               <tr>
-                <th class="px-6 py-4">Client Identifiers Name</th>
-                <th class="px-6 py-4 text-right">Lifetime Aggregate Spend</th>
-                <th class="px-6 py-4 text-right">Last System Interaction Log</th>
+                <th class="px-6 py-4">Customer Name</th>
+                <th class="px-6 py-4 text-right">Total Spent</th>
+                <th class="px-6 py-4 text-right">Last Active</th>
               </tr>
             </thead>
             <tbody id="crmTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/60">
               <tr>
-                <td colspan="3" class="px-6 py-8 text-center text-slate-400">No client data cached locally. Accounts append automatically following document compilation loops.</td>
+                <td colspan="3" class="px-6 py-8 text-center text-slate-400">No customers saved yet. They will appear here automatically when you create a document.</td>
               </tr>
             </tbody>
           </table>
@@ -271,55 +269,55 @@
       </div>
     </section>
 
-    <!-- ================= VIEW: PROFILE / APP CONFIG SETTINGS ================= -->
+    <!-- ================= VIEW: BUSINESS PROFILE ================= -->
     <section id="view-section-settings" class="view-pane hidden max-w-2xl mx-auto">
       <div class="glass-card p-6 rounded-2xl space-y-6">
         <div>
-          <h3 class="text-lg font-bold tracking-tight">Business Profile Configuration</h3>
-          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Configure parameters to align automatically on the print-ready system templates.</p>
+          <h3 class="text-lg font-bold tracking-tight">Business Profile</h3>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">This information will appear at the top of all your PDFs.</p>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Registered Company Trading Name</label>
+            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Business Name</label>
             <input type="text" id="settingBusinessName" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">ZRA TPIN Reference Code Number</label>
+            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">TPIN (Optional)</label>
             <input type="text" id="settingTpin" placeholder="10xxxxxxxx" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
           </div>
           <div class="sm:col-span-2">
-            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Operational Headquarter Address Line</label>
+            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Business Address</label>
             <input type="text" id="settingAddress" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
           </div>
         </div>
 
         <button onclick="commitProfileSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 transition-all">
-          <i data-lucide="save" class="w-4 h-4"></i> Commit Profile Matrix
+          <i data-lucide="save" class="w-4 h-4"></i> Save Profile
         </button>
       </div>
     </section>
 
-    <!-- ================= MODAL STAGE: SUCCESS ESCROW RESOLUTIONS ================= -->
+    <!-- ================= MODAL: SUCCESS ================= -->
     <div id="successModalStage" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      <div class="glass-card max-w-md w-full p-6 rounded-2xl shadow-2xl animate-scale-up space-y-6">
+      <div class="glass-card max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-6">
         <div class="text-center space-y-2">
           <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <i data-lucide="badge-check" class="w-6 h-6"></i>
           </div>
-          <h3 class="text-xl font-bold tracking-tight">Transaction Ledger Recorded Securely</h3>
-          <p class="text-xs text-slate-400 dark:text-slate-500">Document generation cycle completed. Secure PDF link compiled and active.</p>
+          <h3 class="text-xl font-bold tracking-tight">Document Created Successfully!</h3>
+          <p class="text-xs text-slate-400 dark:text-slate-500">Your PDF is ready to view and share.</p>
         </div>
 
         <div class="space-y-2">
           <a id="modalPdfLink" href="#" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
-            <i data-lucide="external-link" class="w-4 h-4"></i> Open Official PDF
+            <i data-lucide="external-link" class="w-4 h-4"></i> Open PDF
           </a>
           <a id="modalWhatsappLink" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#22c35e] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
-            <i data-lucide="message-square" class="w-4 h-4"></i> Share To WhatsApp Mobile
+            <i data-lucide="message-square" class="w-4 h-4"></i> Share on WhatsApp
           </a>
           <button onclick="closeSuccessModalStage()" class="w-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-medium py-3 rounded-xl transition-all text-sm">
-            Return to Operating Dashboard
+            Back to Dashboard
           </button>
         </div>
       </div>
@@ -327,27 +325,26 @@
 
   </main>
 
-  <!-- ================= MASTER CONTROLLER APPLICATION CODE ================= -->
+  <!-- ================= LOGIC ================= -->
   <script>
-    // CRITICAL ASSIGNMENT CONTEXT: Paste Google Apps Script Web App Deployment URL below
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
     const API_URL = 'https://script.google.com/macros/s/AKfycbyI2HOFGAzU5eibX4g5oUCdx8J1i875aAAY6Tw_w3XnzdzSdO7JYSy2W0K-qIAfFWhYRg/exec';
 
-    // Application State Engine Caches
+    // Local Data Storage
     let systemState = {
       theme: 'light',
       documents: JSON.parse(localStorage.getItem('vyeta_docs')) || [],
       profile: JSON.parse(localStorage.getItem('vyeta_profile')) || {
-        businessName: 'Vyeta Solutions Africa Ltd',
-        tpin: '1002394857',
-        address: 'Sapele Road, Central Business District, Lusaka, Zambia'
+        businessName: 'My Business Name',
+        tpin: '',
+        address: 'Lusaka, Zambia'
       }
     };
 
-    // Chart Object References
     let flowChartInstance = null;
     let splitChartInstance = null;
 
-    // Initialization Hook
+    // Start App
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       bootstrapSystemState();
@@ -355,7 +352,6 @@
     });
 
     function bootstrapSystemState() {
-      // Setup initial visual style config matches
       if (localStorage.getItem('vyeta_theme') === 'dark' || (!('vyeta_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.setAttribute('data-theme', 'dark');
         systemState.theme = 'dark';
@@ -364,7 +360,6 @@
         systemState.theme = 'light';
       }
 
-      // Sync settings parameters value fields
       document.getElementById('settingBusinessName').value = systemState.profile.businessName;
       document.getElementById('settingTpin').value = systemState.profile.tpin;
       document.getElementById('settingAddress').value = systemState.profile.address;
@@ -379,7 +374,7 @@
       systemState.theme = targetTheme;
       localStorage.setItem('vyeta_theme', targetTheme);
       if (flowChartInstance && splitChartInstance) {
-        refreshDashboardMetrics(); // Re-renders charting canvas to sync with theme lines styles
+        refreshDashboardMetrics(); 
       }
     }
 
@@ -387,7 +382,6 @@
       document.querySelectorAll('.view-pane').forEach(el => el.classList.add('hidden'));
       document.getElementById(`view-section-${viewId}`).classList.remove('hidden');
 
-      // Update Nav Class Active States Matrices
       document.querySelectorAll('nav button').forEach(btn => {
         btn.className = "flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group";
       });
@@ -397,24 +391,22 @@
         activeBtn.className = "flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 w-full transition-all group";
       }
 
-      // Contextual Header Copy Overrides
       const breadcrumb = document.getElementById('view-breadcrumb');
       const title = document.getElementById('view-title');
       
-      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Enterprise Metrics'; refreshDashboardMetrics(); }
-      if (viewId === 'generator') { breadcrumb.innerText = 'Instruments'; title.innerText = 'Document Generator Engine'; populateCustomerDataDatalists(); }
-      if (viewId === 'crm') { breadcrumb.innerText = 'CRM Ledger'; title.innerText = 'Customer Accounts Accounts'; renderCrmTableLogs(); }
-      if (viewId === 'settings') { breadcrumb.innerText = 'System Config'; title.innerText = 'Operational Profiles'; }
+      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Dashboard'; refreshDashboardMetrics(); }
+      if (viewId === 'generator') { breadcrumb.innerText = 'Create'; title.innerText = 'New Document'; populateCustomerDataDatalists(); }
+      if (viewId === 'crm') { breadcrumb.innerText = 'People'; title.innerText = 'Customers'; renderCrmTableLogs(); }
+      if (viewId === 'settings') { breadcrumb.innerText = 'Settings'; title.innerText = 'Business Profile'; }
     }
 
-    // Dynamic Multi-Row Processing Methods
     function addNewLineItem() {
       const container = document.getElementById('itemsMatrixContainer');
       const row = document.createElement('div');
       row.className = 'grid grid-cols-12 gap-2 items-center dynamic-item-row group';
       row.innerHTML = `
         <div class="col-span-6 sm:col-span-7">
-          <input type="text" placeholder="Product details / Service ledger" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          <input type="text" placeholder="Description of item or service" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
         </div>
         <div class="col-span-2">
           <input type="number" placeholder="Qty" value="1" min="1" oninput="runMatrixCalculations()" required class="item-qty w-full text-center bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
@@ -438,11 +430,10 @@
         buttonElement.closest('.dynamic-item-row').remove();
         runMatrixCalculations();
       } else {
-        alert("System structural integrity rule: At least one baseline product entry row must be defined.");
+        alert("You need at least one item.");
       }
     }
 
-    // Engine Math Logic Rules Calculation Block
     let computedTotalsEscrow = { subtotal: 0, discount: 0, tax: 0, net: 0, items: [] };
 
     function runMatrixCalculations() {
@@ -463,7 +454,7 @@
 
         if (descs[i].value || lineTotal > 0) {
           packedItemsMatrix.push({
-            desc: descs[i].value || 'Standard Line Entry Item',
+            desc: descs[i].value || 'Item',
             qty: qty,
             price: price,
             total: lineTotal
@@ -486,23 +477,22 @@
         discountRate: discountRate
       };
 
-      // Push execution updates out cleanly to metrics frames
       document.getElementById('summarySubtotal').innerText = `K ${subtotalAccumulator.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById('summaryDiscount').innerText = `- K ${discountDeduction.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById('summaryTax').innerText = `K ${taxLiability.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       document.getElementById('summaryNetTotal').innerText = `K ${absoluteNetTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
 
-    // API Pipeline Interactivity Modules
     async function handleDocSubmission(event) {
       event.preventDefault();
-      runMatrixCalculations(); // Freeze-frame validation call
+      runMatrixCalculations(); 
       
       const btn = document.getElementById('masterSubmitButton');
       const initialBtnText = btn.innerHTML;
-      btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Compiling Assets Matrix...`;
+      btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Creating Document...`;
       btn.disabled = true;
 
+      // The exact payload expected by the self-initializing Code.gs backend
       const networkPayload = {
         businessName: systemState.profile.businessName,
         tpin: systemState.profile.tpin,
@@ -511,8 +501,6 @@
         customerName: document.getElementById('customerName').value,
         items: computedTotalsEscrow.items,
         subtotal: computedTotalsEscrow.subtotal,
-        discountRate: computedTotalsEscrow.discountRate,
-        discountAmount: computedTotalsEscrow.discount,
         taxRate: computedTotalsEscrow.taxRate,
         taxAmount: computedTotalsEscrow.tax,
         total: computedTotalsEscrow.net
@@ -521,16 +509,16 @@
       try {
         const networkResponse = await fetch(API_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Bypasses complex CORS intercept policies on mobile browsers
-          body: JSON.stringify({ action: 'CREATE_DOCUMENT', payload: networkPayload })
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          // Fix applied here: Send the payload object directly so the backend can read 'items'
+          body: JSON.stringify(networkPayload) 
         });
 
         const resolution = await networkResponse.json();
 
         if (resolution.success) {
-          // Commit dynamic localized registration logs elements
           const localRecordInstance = {
-            docId: resolution.documentId || 'VY-' + Date.now(),
+            docId: resolution.docId || 'VY-' + Date.now(),
             date: new Date().toISOString(),
             customerName: networkPayload.customerName,
             docType: networkPayload.docType,
@@ -541,17 +529,19 @@
           systemState.documents.unshift(localRecordInstance);
           localStorage.setItem('vyeta_docs', JSON.stringify(systemState.documents));
 
-          // Trigger view output state visibility shifts
           document.getElementById('modalPdfLink').href = resolution.pdfUrl;
-          document.getElementById('modalWhatsappLink').href = `https://wa.me/?text=${resolution.whatsappText}`;
+          
+          const waMessage = encodeURIComponent(`Hi ${networkPayload.customerName}, please find your ${networkPayload.docType} attached: ${resolution.pdfUrl}`);
+          document.getElementById('modalWhatsappLink').href = `https://wa.me/?text=${waMessage}`;
+          
           document.getElementById('successModalStage').classList.remove('hidden');
           document.getElementById('masterDocForm').reset();
           runMatrixCalculations();
         } else {
-          alert(`Compilation Terminal Flag Exception Error: ${resolution.error}`);
+          alert(`Oops! Something went wrong: ${resolution.error}`);
         }
       } catch (error) {
-        alert("Infrastructure Connectivity Break Error. Validate web deployment configuration rules settings or verification parameters maps.");
+        alert("Network error. Please make sure you pasted the correct Web App URL and check your connection.");
       } finally {
         btn.innerHTML = initialBtnText;
         btn.disabled = false;
@@ -565,16 +555,15 @@
 
     function commitProfileSettings() {
       systemState.profile = {
-        businessName: document.getElementById('settingBusinessName').value || 'Vyeta Enterprise',
-        tpin: document.getElementById('settingTpin').value || 'N/A',
-        address: document.getElementById('settingAddress').value || 'N/A'
+        businessName: document.getElementById('settingBusinessName').value || 'My Business',
+        tpin: document.getElementById('settingTpin').value || '',
+        address: document.getElementById('settingAddress').value || ''
       };
       localStorage.setItem('vyeta_profile', JSON.stringify(systemState.profile));
-      alert("Profile context committed securely onto internal system arrays.");
+      alert("Profile saved successfully!");
       switchView('dashboard');
     }
 
-    // Analytical Processing & CRM Computation Blocks
     function calculateAnalyticsAggregates() {
       let totalInvoicedValue = 0;
       let totalOutstandingBalanceValue = 0;
@@ -583,7 +572,7 @@
       systemState.documents.forEach(doc => {
         const cashValue = parseFloat(doc.total) || 0;
         if (doc.docType === 'Invoice') {
-          totalOutstandingBalanceValue += cashValue; // Mocks total unpaid structure state loops tracking values
+          totalOutstandingBalanceValue += cashValue; 
         } else if (doc.docType === 'Receipt') {
           totalInvoicedValue += cashValue;
         }
@@ -602,10 +591,9 @@
       document.getElementById('dash-outstanding').innerText = `K ${aggregates.outstanding.toLocaleString('en-US', {minimumFractionDigits:2})}`;
       document.getElementById('dash-quotes').innerText = aggregates.quotes;
 
-      // Activity Feed Logs Pipeline Matrix Parsing Logic
       const container = document.getElementById('recent-activity-container');
       if (systemState.documents.length === 0) {
-        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">No logs found on internal cache arrays pipelines.</p>`;
+        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">Nothing here yet.</p>`;
       } else {
         container.innerHTML = systemState.documents.slice(0, 5).map(doc => `
           <div class="p-4 sm:px-6 hover:bg-slate-100/30 dark:hover:bg-slate-900/30 flex justify-between items-center text-xs sm:text-sm transition-colors duration-150">
@@ -627,7 +615,6 @@
         lucide.createIcons();
       }
 
-      // Initialize System Render Charts Processes
       renderHighFidelityCharts(aggregates);
     }
 
@@ -651,7 +638,7 @@
       const entries = Object.entries(crmMap);
 
       if (entries.length === 0) {
-        body.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-slate-400">No cached dynamic system tracking metrics located inside active scopes.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-slate-400">No customers found.</td></tr>`;
       } else {
         body.innerHTML = entries.map(([name, data]) => `
           <tr class="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 transition-colors">
@@ -674,11 +661,9 @@
       const textGridColor = isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(107, 114, 128, 0.05)';
       const labelTextColor = isDark ? '#9ca3af' : '#6b7280';
 
-      // 1. Line Performance Flow Chart Destroy/Create Loop
       if (flowChartInstance) flowChartInstance.destroy();
       const ctxLine = document.getElementById('analyticsChart').getContext('2d');
       
-      // Compute timeline dynamic array labels sequence historical slots values metrics
       const chronologicalDocs = [...systemState.documents].reverse();
       const chartPointsData = chronologicalDocs.slice(-6).map(d => parseFloat(d.total) || 0);
       const chartLabelsData = chronologicalDocs.slice(-6).map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'}));
@@ -686,9 +671,9 @@
       flowChartInstance = new Chart(ctxLine, {
         type: 'line',
         data: {
-          labels: chartLabelsData.length ? chartLabelsData : ['Blank Data Frame'],
+          labels: chartLabelsData.length ? chartLabelsData : ['No Data'],
           datasets: [{
-            label: 'Transaction Magnitude',
+            label: 'Amount (K)',
             data: chartPointsData.length ? chartPointsData : [0],
             borderColor: '#2563eb',
             backgroundColor: 'rgba(37, 99, 235, 0.04)',
@@ -709,7 +694,6 @@
         }
       });
 
-      // 2. Split Structural Metric Chart Destroy/Create Loop
       if (splitChartInstance) splitChartInstance.destroy();
       const ctxPie = document.getElementById('pieChart').getContext('2d');
       splitChartInstance = new Chart(ctxPie, {
