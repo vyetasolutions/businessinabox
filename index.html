@@ -4,11 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vyeta Docs — Simple Business Generator</title>
-  <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
     body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
@@ -30,17 +29,15 @@
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-[#030712] dark:text-slate-100 min-h-screen pb-24 md:pb-0 md:pl-64">
 
-  <!-- ================= SIDEBAR / NAVIGATION ================= -->
   <nav class="fixed bottom-0 left-0 right-0 md:top-0 md:right-auto md:w-64 glass-card z-50 flex md:flex-col justify-between px-6 py-3 md:py-8 border-t md:border-t-0 md:border-r border-slate-200 dark:border-slate-800 transition-all">
     <div class="hidden md:flex items-center gap-3 px-2 mb-8">
       <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30">V</div>
       <div>
         <h1 class="font-bold tracking-tight text-sm">Vyeta Docs</h1>
-        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium tracking-wider uppercase">For Small Businesses</p>
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium tracking-wider uppercase">Business OS</p>
       </div>
     </div>
 
-    <!-- Nav Items -->
     <div class="flex md:flex-col justify-around md:justify-start gap-2 w-full">
       <button onclick="switchView('dashboard')" id="nav-dashboard" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 w-full transition-all group">
         <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
@@ -56,7 +53,6 @@
       </button>
     </div>
 
-    <!-- Core Controls -->
     <div class="hidden md:flex flex-col gap-4 w-full pt-4 border-t border-slate-200 dark:border-slate-800">
       <button onclick="toggleTheme()" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full text-left transition-all">
         <i data-lucide="sun-moon" class="w-5 h-5"></i><span>Toggle Theme</span>
@@ -64,13 +60,11 @@
     </div>
   </nav>
 
-  <!-- ================= MAIN CONTENT ================= -->
   <main class="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto transition-all">
 
-    <!-- Header -->
     <div class="flex justify-between items-center mb-8">
       <div>
-        <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase" id="view-breadcrumb">Powered By Vyeta</span>
+        <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase" id="view-breadcrumb">Overview</span>
         <h2 class="text-2xl font-bold tracking-tight mt-0.5" id="view-title">Welcome Back</h2>
       </div>
       <button onclick="toggleTheme()" class="md:hidden p-2.5 rounded-xl glass-card text-slate-700 dark:text-slate-300">
@@ -78,107 +72,85 @@
       </button>
     </div>
 
-    <!-- ================= VIEW: DASHBOARD ================= -->
-    <section id="view-section-dashboard" class="view-pane space-y-6 animate-fade-in">
-      <!-- Quick Stats -->
+    <section id="view-section-dashboard" class="view-pane space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
-          <div class="absolute right-0 top-0 p-6 opacity-10 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
-            <i data-lucide="wallet" class="w-16 h-16"></i>
-          </div>
           <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Received</span>
-          <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-collected">K 0.00</h3>
-          <span class="text-xs text-emerald-500 font-medium flex items-center gap-1 mt-2">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Keep it up!
-          </span>
+          <h3 class="text-3xl font-bold tracking-tight mt-1" id="dash-collected">K 0.00</h3>
         </div>
         <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
-          <div class="absolute right-0 top-0 p-6 opacity-10 text-amber-500 group-hover:scale-110 transition-transform duration-300">
-            <i data-lucide="clock" class="w-16 h-16"></i>
-          </div>
           <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Unpaid Invoices</span>
-          <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-outstanding">K 0.00</h3>
-          <span class="text-xs text-amber-500 font-medium flex items-center gap-1 mt-2">
-            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Awaiting payment
-          </span>
+          <h3 class="text-3xl font-bold tracking-tight mt-1" id="dash-outstanding">K 0.00</h3>
         </div>
         <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
-          <div class="absolute right-0 top-0 p-6 opacity-10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
-            <i data-lucide="file-text" class="w-16 h-16"></i>
-          </div>
           <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sent Quotes</span>
-          <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-quotes">0</h3>
-          <span class="text-xs text-purple-500 font-medium flex items-center gap-1 mt-2">
-            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i> Pending approval
-          </span>
+          <h3 class="text-3xl font-bold tracking-tight mt-1" id="dash-quotes">0</h3>
         </div>
       </div>
 
-      <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="glass-card p-6 rounded-2xl lg:col-span-2">
           <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Revenue Trend</h4>
-          <div class="h-64 relative">
-            <canvas id="analyticsChart"></canvas>
-          </div>
+          <div class="h-64 relative"><canvas id="analyticsChart"></canvas></div>
         </div>
-        
         <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
           <div>
-            <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Documents Created</h4>
-            <div class="h-48 relative flex items-center justify-center">
-              <canvas id="pieChart"></canvas>
-            </div>
+            <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Document Mix</h4>
+            <div class="h-48 relative flex items-center justify-center"><canvas id="pieChart"></canvas></div>
           </div>
         </div>
       </div>
 
-      <!-- Recent Activity -->
       <div class="glass-card rounded-2xl overflow-hidden">
         <div class="p-6 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-center">
-          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Recent Activity</h4>
-          <button onclick="switchView('generator')" class="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline">
-            New Doc <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          </button>
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Recent Documents</h4>
         </div>
-        <div class="divide-y divide-slate-100 dark:divide-slate-800/60 overflow-x-auto no-scrollbar" id="recent-activity-container">
-          <p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">Nothing here yet. Click 'Create Doc' to get started.</p>
-        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-800/60 overflow-x-auto no-scrollbar" id="recent-activity-container"></div>
       </div>
     </section>
 
-    <!-- ================= VIEW: DOCUMENT GENERATOR ================= -->
     <section id="view-section-generator" class="view-pane hidden space-y-6 max-w-4xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Form Area -->
         <div class="lg:col-span-2 space-y-6">
           <form id="masterDocForm" onsubmit="handleDocSubmission(event)" class="space-y-6">
-            <!-- Basic Info -->
+            
             <div class="glass-card p-6 rounded-2xl space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">1. Basic Info</h3>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-2">Document Type</label>
+                <select id="docType" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  <option value="Invoice">Invoice</option>
+                  <option value="Quotation">Quotation</option>
+                  <option value="Receipt">Receipt</option>
+                  <option value="Delivery Note">Delivery Note</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+              <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">2. Customer Details</h3>
+              <div class="space-y-4">
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Document Type</label>
-                  <select id="docType" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    <option value="Invoice">Invoice</option>
-                    <option value="Quotation">Quotation</option>
-                    <option value="Receipt">Receipt</option>
-                    <option value="Delivery Note">Delivery Note</option>
-                  </select>
+                  <label class="block text-xs font-semibold text-slate-500 mb-2">Customer / Company Name</label>
+                  <input type="text" id="customerName" placeholder="e.g., John Doe or Acme Corp" list="customerHistoryList" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  <datalist id="customerHistoryList"></datalist>
                 </div>
-                <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Customer Name</label>
-                  <div class="relative">
-                    <input type="text" id="customerName" placeholder="e.g., John Doe or Acme Corp" list="customerHistoryList" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    <datalist id="customerHistoryList"></datalist>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-2">Customer Phone Number</label>
+                    <input type="text" id="customerPhone" placeholder="e.g., 097xxxxxxx" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-2">Customer Address</label>
+                    <input type="text" id="customerAddress" placeholder="e.g., Plot 12, Great East Road, Lusaka" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Items -->
             <div class="glass-card p-6 rounded-2xl space-y-4">
               <div class="flex justify-between items-center mb-2">
-                <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Items & Services</label>
+                <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">3. Line Items</h3>
                 <button type="button" onclick="addNewLineItem()" class="text-xs font-medium bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
                   <i data-lucide="list-plus" class="w-3.5 h-3.5"></i> Add Item
                 </button>
@@ -187,12 +159,12 @@
               <div id="itemsMatrixContainer" class="space-y-3">
                 <div class="grid grid-cols-12 gap-2 items-center dynamic-item-row group">
                   <div class="col-span-6 sm:col-span-7">
-                    <input type="text" placeholder="Description of item or service" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <input type="text" placeholder="Description of service or item" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                   </div>
                   <div class="col-span-2">
                     <input type="number" placeholder="Qty" value="1" min="1" oninput="runMatrixCalculations()" required class="item-qty w-full text-center bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                   </div>
-                  <div class="col-span-3 col-start-9 sm:col-span-2 sm:col-start-10">
+                  <div class="col-span-3 sm:col-span-2">
                     <input type="number" placeholder="Price" step="0.01" oninput="runMatrixCalculations()" required class="item-price w-full text-right bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                   </div>
                   <div class="col-span-1 flex justify-center">
@@ -204,15 +176,14 @@
               </div>
             </div>
 
-            <!-- Tax and Discount -->
             <div class="glass-card p-6 rounded-2xl">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Tax / VAT (%)</label>
+                  <label class="block text-xs font-semibold text-slate-500 mb-2">Tax / VAT (%)</label>
                   <input type="number" id="taxRate" value="0" min="0" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Discount (%)</label>
+                  <label class="block text-xs font-semibold text-slate-500 mb-2">Discount (%)</label>
                   <input type="number" id="discountRate" value="0" min="0" max="100" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
               </div>
@@ -224,10 +195,9 @@
           </form>
         </div>
 
-        <!-- Summary Area -->
         <div class="space-y-4">
           <div class="glass-card p-6 rounded-2xl sticky top-6">
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Document Summary</span>
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Live Summary</span>
             
             <div class="mt-6 space-y-4 border-b border-slate-100 dark:border-slate-800/60 pb-4">
               <div class="flex justify-between text-sm"><span class="text-slate-400">Subtotal</span><span class="font-medium" id="summarySubtotal">K 0.00</span></div>
@@ -244,80 +214,82 @@
       </div>
     </section>
 
-    <!-- ================= VIEW: CUSTOMERS ================= -->
     <section id="view-section-crm" class="view-pane hidden space-y-6">
       <div class="glass-card rounded-2xl overflow-hidden">
         <div class="p-6 border-b border-slate-100 dark:border-slate-800/60">
-          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Saved Customers</h4>
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Saved Customer Directory</h4>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-500 dark:text-slate-400">
             <thead class="bg-slate-100/40 dark:bg-slate-900/40 text-xs text-slate-400 uppercase font-semibold">
               <tr>
-                <th class="px-6 py-4">Customer Name</th>
-                <th class="px-6 py-4 text-right">Total Spent</th>
-                <th class="px-6 py-4 text-right">Last Active</th>
+                <th class="px-6 py-4">Name</th>
+                <th class="px-6 py-4">Phone</th>
+                <th class="px-6 py-4">Address</th>
+                <th class="px-6 py-4 text-right">Total Billing</th>
               </tr>
             </thead>
-            <tbody id="crmTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/60">
-              <tr>
-                <td colspan="3" class="px-6 py-8 text-center text-slate-400">No customers saved yet. They will appear here automatically when you create a document.</td>
-              </tr>
-            </tbody>
+            <tbody id="crmTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/60"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- ================= VIEW: BUSINESS PROFILE ================= -->
     <section id="view-section-settings" class="view-pane hidden max-w-2xl mx-auto">
       <div class="glass-card p-6 rounded-2xl space-y-6">
         <div>
-          <h3 class="text-lg font-bold tracking-tight">Business Profile</h3>
-          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">This information will appear at the top of all your PDFs.</p>
+          <h3 class="text-lg font-bold tracking-tight">Business Profile Settings</h3>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">This setup populates your professional header parameters and banking terms on all PDFs.</p>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Business Name</label>
+            <label class="block text-xs font-semibold text-slate-500 mb-2">Registered Business Name</label>
             <input type="text" id="settingBusinessName" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">TPIN (Optional)</label>
+            <label class="block text-xs font-semibold text-slate-500 mb-2">Business Phone Number</label>
+            <input type="text" id="settingBusinessPhone" placeholder="e.g., +260 977 123456" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-2">TPIN (Taxpayer Identification No.)</label>
             <input type="text" id="settingTpin" placeholder="10xxxxxxxx" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
           </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-2">Physical Business Address</label>
+            <input type="text" id="settingAddress" placeholder="e.g., Suite 4, Longacres, Lusaka" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          </div>
           <div class="sm:col-span-2">
-            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Business Address</label>
-            <input type="text" id="settingAddress" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            <label class="block text-xs font-semibold text-slate-500 mb-2">Banking Details / Settlement Terms</label>
+            <textarea id="settingBanking" rows="3" placeholder="e.g., Indo Zambia Bank&#10;Acc Name: Vyeta Digital Solutions&#10;Acc No: 001xxxxxxxx&#10;Branch: Lusaka Main" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></textarea>
           </div>
         </div>
 
-        <button onclick="commitProfileSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 transition-all">
-          <i data-lucide="save" class="w-4 h-4"></i> Save Profile
+        <button onclick="commitProfileSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+          <i data-lucide="save" class="w-4 h-4"></i> Save Settings Profile
         </button>
       </div>
     </section>
 
-    <!-- ================= MODAL: SUCCESS ================= -->
     <div id="successModalStage" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
       <div class="glass-card max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-6">
         <div class="text-center space-y-2">
           <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <i data-lucide="badge-check" class="w-6 h-6"></i>
           </div>
-          <h3 class="text-xl font-bold tracking-tight">Document Created Successfully!</h3>
-          <p class="text-xs text-slate-400 dark:text-slate-500">Your PDF is ready to view and share.</p>
+          <h3 class="text-xl font-bold tracking-tight">Processing Matrix Succeeded!</h3>
+          <p class="text-xs text-slate-400 dark:text-slate-500">Your custom file engine output instance is fully generated.</p>
         </div>
 
         <div class="space-y-2">
           <a id="modalPdfLink" href="#" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
-            <i data-lucide="external-link" class="w-4 h-4"></i> Open PDF
+            <i data-lucide="external-link" class="w-4 h-4"></i> View Generated PDF
           </a>
           <a id="modalWhatsappLink" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#22c35e] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
-            <i data-lucide="message-square" class="w-4 h-4"></i> Share on WhatsApp
+            <i data-lucide="message-square" class="w-4 h-4"></i> Share directly to WhatsApp
           </a>
           <button onclick="closeSuccessModalStage()" class="w-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-medium py-3 rounded-xl transition-all text-sm">
-            Back to Dashboard
+            Dismiss to Dashboard Terminal
           </button>
         </div>
       </div>
@@ -325,26 +297,25 @@
 
   </main>
 
-  <!-- ================= LOGIC ================= -->
   <script>
-    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyI2HOFGAzU5eibX4g5oUCdx8J1i875aAAY6Tw_w3XnzdzSdO7JYSy2W0K-qIAfFWhYRg/exec';
+    // PASTE YOUR RE-DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE
+    const API_URL = 'YOUR_WEB_APP_URL_HERE';
 
-    // Local Data Storage
     let systemState = {
       theme: 'light',
       documents: JSON.parse(localStorage.getItem('vyeta_docs')) || [],
       profile: JSON.parse(localStorage.getItem('vyeta_profile')) || {
         businessName: 'My Business Name',
+        businessPhone: '',
         tpin: '',
-        address: 'Lusaka, Zambia'
+        address: 'Lusaka, Zambia',
+        banking: ''
       }
     };
 
     let flowChartInstance = null;
     let splitChartInstance = null;
 
-    // Start App
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       bootstrapSystemState();
@@ -355,14 +326,13 @@
       if (localStorage.getItem('vyeta_theme') === 'dark' || (!('vyeta_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.setAttribute('data-theme', 'dark');
         systemState.theme = 'dark';
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        systemState.theme = 'light';
       }
 
       document.getElementById('settingBusinessName').value = systemState.profile.businessName;
+      document.getElementById('settingBusinessPhone').value = systemState.profile.businessPhone || '';
       document.getElementById('settingTpin').value = systemState.profile.tpin;
       document.getElementById('settingAddress').value = systemState.profile.address;
+      document.getElementById('settingBanking').value = systemState.profile.banking || '';
 
       runMatrixCalculations();
       refreshDashboardMetrics();
@@ -373,9 +343,7 @@
       document.documentElement.setAttribute('data-theme', targetTheme);
       systemState.theme = targetTheme;
       localStorage.setItem('vyeta_theme', targetTheme);
-      if (flowChartInstance && splitChartInstance) {
-        refreshDashboardMetrics(); 
-      }
+      refreshDashboardMetrics();
     }
 
     function switchView(viewId) {
@@ -394,7 +362,7 @@
       const breadcrumb = document.getElementById('view-breadcrumb');
       const title = document.getElementById('view-title');
       
-      if (viewId === 'dashboard') { breadcrumb.innerText = 'Powered By Vyeta'; title.innerText = 'Dashboard'; refreshDashboardMetrics(); }
+      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Dashboard'; refreshDashboardMetrics(); }
       if (viewId === 'generator') { breadcrumb.innerText = 'Create'; title.innerText = 'New Document'; populateCustomerDataDatalists(); }
       if (viewId === 'crm') { breadcrumb.innerText = 'People'; title.innerText = 'Customers'; renderCrmTableLogs(); }
       if (viewId === 'settings') { breadcrumb.innerText = 'Settings'; title.innerText = 'Business Profile'; }
@@ -406,12 +374,12 @@
       row.className = 'grid grid-cols-12 gap-2 items-center dynamic-item-row group';
       row.innerHTML = `
         <div class="col-span-6 sm:col-span-7">
-          <input type="text" placeholder="Description of item or service" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          <input type="text" placeholder="Description of service or item" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
         </div>
         <div class="col-span-2">
           <input type="number" placeholder="Qty" value="1" min="1" oninput="runMatrixCalculations()" required class="item-qty w-full text-center bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
         </div>
-        <div class="col-span-3 col-start-9 sm:col-span-2 sm:col-start-10">
+        <div class="col-span-3 sm:col-span-2">
           <input type="number" placeholder="Price" step="0.01" oninput="runMatrixCalculations()" required class="item-price w-full text-right bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
         </div>
         <div class="col-span-1 flex justify-center">
@@ -424,13 +392,12 @@
       lucide.createIcons();
     }
 
-    function removeLineItemRow(buttonElement) {
-      const rows = document.querySelectorAll('.dynamic-item-row');
-      if (rows.length > 1) {
-        buttonElement.closest('.dynamic-item-row').remove();
+    function removeLineItemRow(btn) {
+      if (document.querySelectorAll('.dynamic-item-row').length > 1) {
+        btn.closest('.dynamic-item-row').remove();
         runMatrixCalculations();
       } else {
-        alert("You need at least one item.");
+        alert("At least one target line item is required.");
       }
     }
 
@@ -443,62 +410,56 @@
       const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
       const discountRate = parseFloat(document.getElementById('discountRate').value) || 0;
 
-      let subtotalAccumulator = 0;
-      let packedItemsMatrix = [];
+      let subtotal = 0;
+      let packedItems = [];
 
       for (let i = 0; i < prices.length; i++) {
         const qty = parseFloat(qtys[i].value) || 0;
         const price = parseFloat(prices[i].value) || 0;
-        const lineTotal = qty * price;
-        subtotalAccumulator += lineTotal;
+        const total = qty * price;
+        subtotal += total;
 
-        if (descs[i].value || lineTotal > 0) {
-          packedItemsMatrix.push({
-            desc: descs[i].value || 'Item',
+        if (descs[i].value || total > 0) {
+          packedItems.push({
+            desc: descs[i].value || 'Service Item',
             qty: qty,
             price: price,
-            total: lineTotal
+            total: total
           });
         }
       }
 
-      const discountDeduction = subtotalAccumulator * (discountRate / 100);
-      const postDiscountValue = subtotalAccumulator - discountDeduction;
-      const taxLiability = postDiscountValue * (taxRate / 100);
-      const absoluteNetTotal = postDiscountValue + taxLiability;
+      const discountAmount = subtotal * (discountRate / 100);
+      const taxAmount = (subtotal - discountAmount) * (taxRate / 100);
+      const netTotal = (subtotal - discountAmount) + taxAmount;
 
-      computedTotalsEscrow = {
-        subtotal: subtotalAccumulator,
-        discount: discountDeduction,
-        tax: taxLiability,
-        net: absoluteNetTotal,
-        items: packedItemsMatrix,
-        taxRate: taxRate,
-        discountRate: discountRate
-      };
+      computedTotalsEscrow = { subtotal, discount: discountAmount, tax: taxAmount, net: netTotal, items: packedItems, taxRate, discountRate };
 
-      document.getElementById('summarySubtotal').innerText = `K ${subtotalAccumulator.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById('summaryDiscount').innerText = `- K ${discountDeduction.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById('summaryTax').innerText = `K ${taxLiability.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById('summaryNetTotal').innerText = `K ${absoluteNetTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('summarySubtotal').innerText = `K ${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('summaryDiscount').innerText = `- K ${discountAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('summaryTax').innerText = `K ${taxAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('summaryNetTotal').innerText = `K ${netTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
     }
 
-    async function handleDocSubmission(event) {
-      event.preventDefault();
-      runMatrixCalculations(); 
+    async function handleDocSubmission(e) {
+      e.preventDefault();
+      runMatrixCalculations();
       
       const btn = document.getElementById('masterSubmitButton');
-      const initialBtnText = btn.innerHTML;
-      btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Creating Document...`;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `Processing Secure Network Arrays...`;
       btn.disabled = true;
 
-      // The exact payload expected by the self-initializing Code.gs backend
       const networkPayload = {
         businessName: systemState.profile.businessName,
+        businessPhone: systemState.profile.businessPhone,
         tpin: systemState.profile.tpin,
         address: systemState.profile.address,
+        banking: systemState.profile.banking,
         docType: document.getElementById('docType').value,
         customerName: document.getElementById('customerName').value,
+        customerPhone: document.getElementById('customerPhone').value,
+        customerAddress: document.getElementById('customerAddress').value,
         items: computedTotalsEscrow.items,
         subtotal: computedTotalsEscrow.subtotal,
         taxRate: computedTotalsEscrow.taxRate,
@@ -507,43 +468,40 @@
       };
 
       try {
-        const networkResponse = await fetch(API_URL, {
+        const res = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          // Fix applied here: Send the payload object directly so the backend can read 'items'
-          body: JSON.stringify(networkPayload) 
+          body: JSON.stringify(networkPayload)
         });
 
-        const resolution = await networkResponse.json();
+        const data = await res.json();
 
-        if (resolution.success) {
-          const localRecordInstance = {
-            docId: resolution.docId || 'VY-' + Date.now(),
+        if (data.success) {
+          systemState.documents.unshift({
+            docId: data.docId || 'VY-' + Date.now(),
             date: new Date().toISOString(),
             customerName: networkPayload.customerName,
+            customerPhone: networkPayload.customerPhone,
+            customerAddress: networkPayload.customerAddress,
             docType: networkPayload.docType,
             total: networkPayload.total,
-            pdfUrl: resolution.pdfUrl
-          };
-
-          systemState.documents.unshift(localRecordInstance);
-          localStorage.setItem('vyeta_docs', JSON.stringify(systemState.documents));
-
-          document.getElementById('modalPdfLink').href = resolution.pdfUrl;
+            pdfUrl: data.pdfUrl
+          });
           
-          const waMessage = encodeURIComponent(`Hi ${networkPayload.customerName}, please find your ${networkPayload.docType} attached: ${resolution.pdfUrl}`);
-          document.getElementById('modalWhatsappLink').href = `https://wa.me/?text=${waMessage}`;
+          localStorage.setItem('vyeta_docs', JSON.stringify(systemState.documents));
+          document.getElementById('modalPdfLink').href = data.pdfUrl;
+          document.getElementById('modalWhatsappLink').href = `https://wa.me/${networkPayload.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Thanks for choosing ' + networkPayload.businessName + '. View your document here: ' + data.pdfUrl)}`;
           
           document.getElementById('successModalStage').classList.remove('hidden');
           document.getElementById('masterDocForm').reset();
           runMatrixCalculations();
         } else {
-          alert(`Oops! Something went wrong: ${resolution.error}`);
+          alert(`Payload rejection: ${data.error}`);
         }
-      } catch (error) {
-        alert("Network error. Please make sure you pasted the correct Web App URL and check your connection.");
+      } catch (err) {
+        alert("Web Application Routing Breakdown. Validate standard script configuration hooks.");
       } finally {
-        btn.innerHTML = initialBtnText;
+        btn.innerHTML = originalText;
         btn.disabled = false;
       }
     }
@@ -556,80 +514,62 @@
     function commitProfileSettings() {
       systemState.profile = {
         businessName: document.getElementById('settingBusinessName').value || 'My Business',
+        businessPhone: document.getElementById('settingBusinessPhone').value || '',
         tpin: document.getElementById('settingTpin').value || '',
-        address: document.getElementById('settingAddress').value || ''
+        address: document.getElementById('settingAddress').value || '',
+        banking: document.getElementById('settingBanking').value || ''
       };
       localStorage.setItem('vyeta_profile', JSON.stringify(systemState.profile));
-      alert("Profile saved successfully!");
+      alert("Local profile memory arrays updated successfully.");
       switchView('dashboard');
     }
 
-    function calculateAnalyticsAggregates() {
-      let totalInvoicedValue = 0;
-      let totalOutstandingBalanceValue = 0;
-      let metricsCountMap = { Invoice: 0, Quotation: 0, Receipt: 0, 'Delivery Note': 0 };
+    function refreshDashboardMetrics() {
+      let collected = 0, outstanding = 0, quotes = 0;
+      let splitMap = { Invoice: 0, Quotation: 0, Receipt: 0, 'Delivery Note': 0 };
 
       systemState.documents.forEach(doc => {
-        const cashValue = parseFloat(doc.total) || 0;
-        if (doc.docType === 'Invoice') {
-          totalOutstandingBalanceValue += cashValue; 
-        } else if (doc.docType === 'Receipt') {
-          totalInvoicedValue += cashValue;
-        }
-        if (metricsCountMap[doc.docType] !== undefined) {
-          metricsCountMap[doc.docType]++;
-        }
+        const val = parseFloat(doc.total) || 0;
+        if (doc.docType === 'Receipt') collected += val;
+        if (doc.docType === 'Invoice') outstanding += val;
+        if (doc.docType === 'Quotation') quotes++;
+        if (splitMap[doc.docType] !== undefined) splitMap[doc.docType]++;
       });
 
-      return { collected: totalInvoicedValue, outstanding: totalOutstandingBalanceValue, quotes: metricsCountMap['Quotation'], splitMap: metricsCountMap };
-    }
-
-    function refreshDashboardMetrics() {
-      const aggregates = calculateAnalyticsAggregates();
-      
-      document.getElementById('dash-collected').innerText = `K ${aggregates.collected.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-      document.getElementById('dash-outstanding').innerText = `K ${aggregates.outstanding.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-      document.getElementById('dash-quotes').innerText = aggregates.quotes;
+      document.getElementById('dash-collected').innerText = `K ${collected.toLocaleString('en-US', {minimumFractionDigits:2})}`;
+      document.getElementById('dash-outstanding').innerText = `K ${outstanding.toLocaleString('en-US', {minimumFractionDigits:2})}`;
+      document.getElementById('dash-quotes').innerText = quotes;
 
       const container = document.getElementById('recent-activity-container');
       if (systemState.documents.length === 0) {
-        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">Nothing here yet.</p>`;
+        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400">Empty system log matrix.</p>`;
       } else {
         container.innerHTML = systemState.documents.slice(0, 5).map(doc => `
-          <div class="p-4 sm:px-6 hover:bg-slate-100/30 dark:hover:bg-slate-900/30 flex justify-between items-center text-xs sm:text-sm transition-colors duration-150">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500">
-                <i data-lucide="file-text" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <p class="font-semibold text-slate-900 dark:text-slate-100">${doc.customerName}</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">${doc.docType} • ${new Date(doc.date).toLocaleDateString()}</p>
-              </div>
+          <div class="p-4 sm:px-6 hover:bg-slate-100/30 dark:hover:bg-slate-900/30 flex justify-between items-center text-xs sm:text-sm transition-colors">
+            <div>
+              <p class="font-semibold text-slate-900 dark:text-slate-100">${doc.customerName}</p>
+              <p class="text-[11px] text-slate-400 font-medium">${doc.docType} • ${new Date(doc.date).toLocaleDateString()}</p>
             </div>
-            <div class="text-right flex items-center gap-3">
-              <span class="font-semibold text-slate-900 dark:text-slate-100">K ${parseFloat(doc.total).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
-              <a href="${doc.pdfUrl}" target="_blank" class="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+            <div class="flex items-center gap-3">
+              <span class="font-semibold">K ${parseFloat(doc.total).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+              <a href="${doc.pdfUrl}" target="_blank" class="p-1.5 text-slate-400 hover:text-blue-500"><i data-lucide="external-link" class="w-4 h-4"></i></a>
             </div>
           </div>
         `).join('');
         lucide.createIcons();
       }
-
-      renderHighFidelityCharts(aggregates);
+      renderCharts(collected, outstanding, quotes, splitMap);
     }
 
     function buildCrmMapRecords() {
-      let clientLedgerAggregationMatrix = {};
+      let matrix = {};
       systemState.documents.forEach(doc => {
-        if (!clientLedgerAggregationMatrix[doc.customerName]) {
-          clientLedgerAggregationMatrix[doc.customerName] = { spend: 0, lastActive: doc.date };
+        if (!matrix[doc.customerName]) {
+          matrix[doc.customerName] = { phone: doc.customerPhone || 'N/A', address: doc.customerAddress || 'N/A', spend: 0 };
         }
-        clientLedgerAggregationMatrix[doc.customerName].spend += parseFloat(doc.total) || 0;
-        if (new Date(doc.date) > new Date(clientLedgerAggregationMatrix[doc.customerName].lastActive)) {
-          clientLedgerAggregationMatrix[doc.customerName].lastActive = doc.date;
-        }
+        matrix[doc.customerName].spend += parseFloat(doc.total) || 0;
       });
-      return clientLedgerAggregationMatrix;
+      return matrix;
     }
 
     function renderCrmTableLogs() {
@@ -638,13 +578,14 @@
       const entries = Object.entries(crmMap);
 
       if (entries.length === 0) {
-        body.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-slate-400">No customers found.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400">Directory contains no compiled vectors.</td></tr>`;
       } else {
         body.innerHTML = entries.map(([name, data]) => `
-          <tr class="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 transition-colors">
+          <tr class="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 text-xs sm:text-sm transition-colors">
             <td class="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">${name}</td>
+            <td class="px-6 py-4 text-slate-400">${data.phone}</td>
+            <td class="px-6 py-4 text-slate-400">${data.address}</td>
             <td class="px-6 py-4 text-right font-medium text-slate-900 dark:text-slate-100">K ${data.spend.toLocaleString('en-US', {minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 text-right text-xs text-slate-400 dark:text-slate-500">${new Date(data.lastActive).toLocaleDateString()}</td>
           </tr>
         `).join('');
       }
@@ -652,65 +593,54 @@
 
     function populateCustomerDataDatalists() {
       const crmMap = buildCrmMapRecords();
-      const listElement = document.getElementById('customerHistoryList');
-      listElement.innerHTML = Object.keys(crmMap).map(clientName => `<option value="${clientName}"></option>`).join('');
+      document.getElementById('customerHistoryList').innerHTML = Object.keys(crmMap).map(n => `<option value="${n}"></option>`).join('');
     }
 
-    function renderHighFidelityCharts(aggregates) {
+    function renderCharts(c, o, q, splitMap) {
       const isDark = systemState.theme === 'dark';
-      const textGridColor = isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(107, 114, 128, 0.05)';
-      const labelTextColor = isDark ? '#9ca3af' : '#6b7280';
+      const gridCol = isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(107, 114, 128, 0.05)';
+      const txtCol = isDark ? '#9ca3af' : '#6b7280';
 
       if (flowChartInstance) flowChartInstance.destroy();
-      const ctxLine = document.getElementById('analyticsChart').getContext('2d');
+      const reversedDocs = [...systemState.documents].reverse().slice(-6);
       
-      const chronologicalDocs = [...systemState.documents].reverse();
-      const chartPointsData = chronologicalDocs.slice(-6).map(d => parseFloat(d.total) || 0);
-      const chartLabelsData = chronologicalDocs.slice(-6).map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'}));
-
-      flowChartInstance = new Chart(ctxLine, {
+      flowChartInstance = new Chart(document.getElementById('analyticsChart').getContext('2d'), {
         type: 'line',
         data: {
-          labels: chartLabelsData.length ? chartLabelsData : ['No Data'],
+          labels: reversedDocs.map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'])),
           datasets: [{
-            label: 'Amount (K)',
-            data: chartPointsData.length ? chartPointsData : [0],
+            data: reversedDocs.map(d => parseFloat(d.total) || 0),
             borderColor: '#2563eb',
             backgroundColor: 'rgba(37, 99, 235, 0.04)',
             borderWidth: 2.5,
             tension: 0.35,
-            fill: true,
-            pointBackgroundColor: '#2563eb'
+            fill: true
           }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { color: textGridColor }, ticks: { color: labelTextColor, font: { size: 10 } } },
-            y: { grid: { color: textGridColor }, ticks: { color: labelTextColor, font: { size: 10 } } }
+            x: { grid: { color: gridCol }, ticks: { color: txtCol, font: { size: 10 } } },
+            y: { grid: { color: gridCol }, ticks: { color: txtCol, font: { size: 10 } } }
           }
         }
       });
 
       if (splitChartInstance) splitChartInstance.destroy();
-      const ctxPie = document.getElementById('pieChart').getContext('2d');
-      splitChartInstance = new Chart(ctxPie, {
+      splitChartInstance = new Chart(document.getElementById('pieChart').getContext('2d'), {
         type: 'doughnut',
         data: {
           labels: ['Invoices', 'Quotations', 'Receipts', 'Delivery Notes'],
           datasets: [{
-            data: [aggregates.splitMap['Invoice'], aggregates.splitMap['Quotation'], aggregates.splitMap['Receipt'], aggregates.splitMap['Delivery Note']],
+            data: [splitMap['Invoice'], splitMap['Quotation'], splitMap['Receipt'], splitMap['Delivery Note']],
             backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1'],
-            borderWidth: isDark ? 3 : 1.5,
-            borderColor: isDark ? '#0f172a' : '#fff'
+            borderWidth: isDark ? 3 : 1.5, borderColor: isDark ? '#0f172a' : '#fff'
           }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: labelTextColor, font: { size: 11 }, padding: 12 } } },
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: txtCol, font: { size: 11 } } } },
           cutout: '75%'
         }
       });
