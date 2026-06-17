@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -299,7 +299,7 @@
 
   <script>
     // PASTE YOUR RE-DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyI2HOFGAzU5eibX4g5oUCdx8J1i875aAAY6Tw_w3XnzdzSdO7JYSy2W0K-qIAfFWhYRg/exec';
+    const API_URL = 'YOUR_WEB_APP_URL_HERE';
 
     let systemState = {
       theme: 'light',
@@ -362,7 +362,7 @@
       const breadcrumb = document.getElementById('view-breadcrumb');
       const title = document.getElementById('view-title');
       
-      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Dashboard'; refreshDashboardMetrics(); }
+      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Welcome Back'; refreshDashboardMetrics(); }
       if (viewId === 'generator') { breadcrumb.innerText = 'Create'; title.innerText = 'New Document'; populateCustomerDataDatalists(); }
       if (viewId === 'crm') { breadcrumb.innerText = 'People'; title.innerText = 'Customers'; renderCrmTableLogs(); }
       if (viewId === 'settings') { breadcrumb.innerText = 'Settings'; title.innerText = 'Business Profile'; }
@@ -496,7 +496,7 @@
           document.getElementById('masterDocForm').reset();
           runMatrixCalculations();
         } else {
-          alert(`Payload rejection: ${data.error}`);
+          alert(`Payload Rejection: ${data.error}`);
         }
       } catch (err) {
         alert("Web Application Routing Breakdown. Validate standard script configuration hooks.");
@@ -607,7 +607,7 @@
       flowChartInstance = new Chart(document.getElementById('analyticsChart').getContext('2d'), {
         type: 'line',
         data: {
-          labels: reversedDocs.map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'])),
+          labels: reversedDocs.map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})),
           datasets: [{
             data: reversedDocs.map(d => parseFloat(d.total) || 0),
             borderColor: '#2563eb',
