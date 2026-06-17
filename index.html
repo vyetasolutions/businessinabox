@@ -1,220 +1,736 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vyeta Docs - Generator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Vyeta Docs — SME Operating System</title>
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
-    :root {
-      --bg: #f8fafc; --surface: rgba(255, 255, 255, 0.7);
-      --text: #0f172a; --text-muted: #64748b;
-      --border: rgba(226, 232, 240, 0.8); --accent: #2563eb;
-    }
-    [data-theme="dark"] {
-      --bg: #020617; --surface: rgba(15, 23, 42, 0.7);
-      --text: #f8fafc; --text-muted: #94a3b8;
-      --border: rgba(30, 41, 59, 0.8); --accent: #3b82f6;
-    }
-    body {
-      font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
-      margin: 0; padding: 20px; transition: 0.3s;
-    }
-    .container { max-width: 600px; margin: 0 auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
     .glass-card {
-      background: var(--surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border); border-radius: 16px; padding: 24px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
     }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 14px; margin-bottom: 6px; color: var(--text-muted); }
-    input, select {
-      width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif; box-sizing: border-box;
+    [data-theme="dark"] .glass-card {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(30, 41, 59, 0.7);
     }
-    input:focus, select:focus { outline: none; border-color: var(--accent); }
-    
-    .item-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .totals-box { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
-    .total-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
-    .grand-total { font-size: 18px; font-weight: 600; margin-top: 12px; }
-    
-    .btn {
-      width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
-      border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
-    }
-    .btn:active { transform: scale(0.98); }
-    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); margin-bottom: 16px;}
-    
-    #successState { display: none; text-align: center; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#030712] dark:text-slate-100 min-h-screen pb-24 md:pb-0 md:pl-64">
 
-<div class="container">
-  <div class="header">
-    <h2 style="margin:0;">Vyeta Docs</h2>
-    <button onclick="toggleTheme()" style="background:none; border:none; color:var(--text); cursor:pointer; font-size: 20px;">🌓</button>
-  </div>
+  <!-- ================= SIDEBAR / NAVIGATION ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 md:top-0 md:right-auto md:w-64 glass-card z-50 flex md:flex-col justify-between px-6 py-3 md:py-8 border-t md:border-t-0 md:border-r border-slate-200 dark:border-slate-800 transition-all">
+    <div class="hidden md:flex items-center gap-3 px-2 mb-8">
+      <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30">V</div>
+      <div>
+        <h1 class="font-bold tracking-tight text-sm">Vyeta Docs</h1>
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium tracking-wider uppercase">SME Operating System</p>
+      </div>
+    </div>
 
-  <div class="glass-card" id="formState">
-    <form id="vyetaForm">
-      <div class="form-group">
-        <label>Document Type</label>
-        <select id="docType">
-          <option value="Invoice">Invoice</option>
-          <option value="Quotation">Quotation</option>
-          <option value="Receipt">Receipt</option>
-        </select>
+    <!-- Nav Items Matrix -->
+    <div class="flex md:flex-col justify-around md:justify-start gap-2 w-full">
+      <button onclick="switchView('dashboard')" id="nav-dashboard" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 w-full transition-all group">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
+      </button>
+      <button onclick="switchView('generator')" id="nav-generator" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group">
+        <i data-lucide="file-plus-2" class="w-5 h-5"></i><span>Create Doc</span>
+      </button>
+      <button onclick="switchView('crm')" id="nav-crm" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group">
+        <i data-lucide="users" class="w-5 h-5"></i><span>Customers</span>
+      </button>
+      <button onclick="switchView('settings')" id="nav-settings" class="flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group">
+        <i data-lucide="settings" class="w-5 h-5"></i><span>Profile Setup</span>
+      </button>
+    </div>
+
+    <!-- Core Utility Controls -->
+    <div class="hidden md:flex flex-col gap-4 w-full pt-4 border-t border-slate-200 dark:border-slate-800">
+      <button onclick="toggleTheme()" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full text-left transition-all">
+        <i data-lucide="sun-moon" class="w-5 h-5"></i><span>Toggle Theme</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= VIEW WRAPPER CONTAINER ================= -->
+  <main class="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto transition-all">
+
+    <!-- Header Interface Block -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase" id="view-breadcrumb">Overview</span>
+        <h2 class="text-2xl font-bold tracking-tight mt-0.5" id="view-title">Welcome Back</h2>
+      </div>
+      <button onclick="toggleTheme()" class="md:hidden p-2.5 rounded-xl glass-card text-slate-700 dark:text-slate-300">
+        <i data-lucide="sun-moon" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- ================= VIEW: DASHBOARD ================= -->
+    <section id="view-section-dashboard" class="view-pane space-y-6 animate-fade-in">
+      <!-- High-Fidelity Executive Metrics Rows -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute right-0 top-0 p-6 opacity-10 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="wallet" class="w-16 h-16"></i>
+          </div>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Collected (MTD)</span>
+          <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-collected">K 0.00</h3>
+          <span class="text-xs text-emerald-500 font-medium flex items-center gap-1 mt-2">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +12.4% vs last month
+          </span>
+        </div>
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute right-0 top-0 p-6 opacity-10 text-amber-500 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="clock" class="w-16 h-16"></i>
+          </div>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Outstanding Receivables</span>
+          <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-outstanding">K 0.00</h3>
+          <span class="text-xs text-amber-500 font-medium flex items-center gap-1 mt-2">
+            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Action required
+          </span>
+        </div>
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute right-0 top-0 p-6 opacity-10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="file-text" class="w-16 h-16"></i>
+          </div>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Active Quotations</span>
+          <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1" id="dash-quotes">0</h3>
+          <span class="text-xs text-purple-500 font-medium flex items-center gap-1 mt-2">
+            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i> Ready to convert
+          </span>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Customer Name</label>
-        <input type="text" id="customerName" required placeholder="e.g., Acme Corp">
-      </div>
-
-      <div class="form-group">
-        <label>Line Items</label>
-        <div id="itemsContainer">
-          <div class="item-row">
-            <input type="text" class="item-desc" placeholder="Description" required>
-            <input type="number" class="item-price" placeholder="Amount (ZMW)" oninput="calculateTotals()" required>
+      <!-- Advanced Functional Analytic Panels -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-2xl lg:col-span-2">
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Revenue Performance Flow</h4>
+          <div class="h-64 relative">
+            <canvas id="analyticsChart"></canvas>
           </div>
         </div>
-        <button type="button" class="btn btn-secondary" onclick="addItem()">+ Add Item</button>
+        
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+          <div>
+            <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Document Status Split</h4>
+            <div class="h-48 relative flex items-center justify-center">
+              <canvas id="pieChart"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Tax / VAT Rate (%)</label>
-        <input type="number" id="taxRate" value="0" oninput="calculateTotals()">
+      <!-- Comprehensive Recent Audit Feeds -->
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-center">
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Recent Enterprise Activity Log</h4>
+          <button onclick="switchView('generator')" class="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline">
+            New Transaction <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-800/60 overflow-x-auto no-scrollbar" id="recent-activity-container">
+          <!-- Dynamic logs inject here -->
+          <p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">No active records detected. Tap 'Create Doc' to initiate ledger tracks.</p>
+        </div>
       </div>
+    </section>
 
-      <div class="totals-box">
-        <div class="total-line"><span>Subtotal</span> <span id="uiSubtotal">K 0.00</span></div>
-        <div class="total-line"><span>Tax</span> <span id="uiTax">K 0.00</span></div>
-        <div class="total-line grand-total"><span>Total</span> <span id="uiTotal">K 0.00</span></div>
+    <!-- ================= VIEW: DOCUMENT GENERATOR ================= -->
+    <section id="view-section-generator" class="view-pane hidden space-y-6 max-w-4xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Configuration Workspace Area -->
+        <div class="lg:col-span-2 space-y-6">
+          <form id="masterDocForm" onsubmit="handleDocSubmission(event)" class="space-y-6">
+            <!-- Metadata Selection Blocks -->
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Instrument Architecture Type</label>
+                  <select id="docType" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <option value="Invoice">Tax Invoice</option>
+                    <option value="Quotation">Commercial Quotation</option>
+                    <option value="Receipt">Official Payment Receipt</option>
+                    <option value="Delivery Note">Delivery Order Note</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Target Customer Entity</label>
+                  <div class="relative">
+                    <input type="text" id="customerName" placeholder="Search or input new buyer name" list="customerHistoryList" required class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <datalist id="customerHistoryList"></datalist>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Native Tabulating Multi-Row Matrices Setup -->
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Itemized Line Matrix Accounts</label>
+                <button type="button" onclick="addNewLineItem()" class="text-xs font-medium bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
+                  <i data-lucide="list-plus" class="w-3.5 h-3.5"></i> Add Row
+                </button>
+              </div>
+              
+              <div id="itemsMatrixContainer" class="space-y-3">
+                <!-- Master Entry Row Instance Definition -->
+                <div class="grid grid-cols-12 gap-2 items-center dynamic-item-row group">
+                  <div class="col-span-6 sm:col-span-7">
+                    <input type="text" placeholder="Product details / Service ledger" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  </div>
+                  <div class="col-span-2">
+                    <input type="number" placeholder="Qty" value="1" min="1" oninput="runMatrixCalculations()" required class="item-qty w-full text-center bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  </div>
+                  <div class="col-span-3 col-start-9 sm:col-span-2 sm:col-start-10">
+                    <input type="number" placeholder="Price" step="0.01" oninput="runMatrixCalculations()" required class="item-price w-full text-right bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  </div>
+                  <div class="col-span-1 flex justify-center">
+                    <button type="button" onclick="removeLineItemRow(this)" class="text-slate-300 hover:text-rose-500 transition-colors p-1">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Adjustments Settings Section -->
+            <div class="glass-card p-6 rounded-2xl">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Government Value Added Tax / ZRA VAT (%)</label>
+                  <input type="number" id="taxRate" value="16" min="0" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-2">Discretionary Global Discount Deduction (%)</label>
+                  <input type="number" id="discountRate" value="0" min="0" max="100" oninput="runMatrixCalculations()" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="masterSubmitButton" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="file-check-2" class="w-5 h-5"></i> Execute and Compile Document Document
+            </button>
+          </form>
+        </div>
+
+        <!-- Realtime Transaction Escrow Matrix Summaries -->
+        <div class="space-y-4">
+          <div class="glass-card p-6 rounded-2xl sticky top-6">
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Live System Tabulation Ledger</span>
+            
+            <div class="mt-6 space-y-4 border-b border-slate-100 dark:border-slate-800/60 pb-4">
+              <div class="flex justify-between text-sm"><span class="text-slate-400">Subtotal</span><span class="font-medium" id="summarySubtotal">K 0.00</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-400 text-rose-400">Discount Break</span><span class="font-medium text-rose-500" id="summaryDiscount">- K 0.00</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-400">Tax Liabilities</span><span class="font-medium" id="summaryTax">K 0.00</span></div>
+            </div>
+
+            <div class="flex justify-between items-center mt-4">
+              <span class="text-sm font-semibold tracking-tight">Net Total Realized</span>
+              <span class="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400" id="summaryNetTotal">K 0.00</span>
+            </div>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <button type="submit" class="btn" id="submitBtn" style="margin-top: 20px;">Generate Document</button>
-    </form>
-  </div>
+    <!-- ================= VIEW: LITE CRM MANAGEMENT ================= -->
+    <section id="view-section-crm" class="view-pane hidden space-y-6">
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-800/60">
+          <h4 class="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Saved Client Accounts Matrix</h4>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+            <thead class="bg-slate-100/40 dark:bg-slate-900/40 text-xs text-slate-400 uppercase font-semibold">
+              <tr>
+                <th class="px-6 py-4">Client Identifiers Name</th>
+                <th class="px-6 py-4 text-right">Lifetime Aggregate Spend</th>
+                <th class="px-6 py-4 text-right">Last System Interaction Log</th>
+              </tr>
+            </thead>
+            <tbody id="crmTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tr>
+                <td colspan="3" class="px-6 py-8 text-center text-slate-400">No client data cached locally. Accounts append automatically following document compilation loops.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-  <div class="glass-card" id="successState">
-    <h3 style="color: #10b981; margin-top:0;">Document Ready!</h3>
-    <p style="color: var(--text-muted);">Saved securely to your Google Drive.</p>
-    <a id="pdfLink" href="#" target="_blank" class="btn" style="display:block; text-decoration:none; margin-bottom:12px;">📄 Open PDF</a>
-    <button onclick="resetForm()" class="btn btn-secondary">Create Another</button>
-  </div>
-</div>
+    <!-- ================= VIEW: PROFILE / APP CONFIG SETTINGS ================= -->
+    <section id="view-section-settings" class="view-pane hidden max-w-2xl mx-auto">
+      <div class="glass-card p-6 rounded-2xl space-y-6">
+        <div>
+          <h3 class="text-lg font-bold tracking-tight">Business Profile Configuration</h3>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Configure parameters to align automatically on the print-ready system templates.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Registered Company Trading Name</label>
+            <input type="text" id="settingBusinessName" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">ZRA TPIN Reference Code Number</label>
+            <input type="text" id="settingTpin" placeholder="10xxxxxxxx" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-2">Operational Headquarter Address Line</label>
+            <input type="text" id="settingAddress" class="w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          </div>
+        </div>
 
-<script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbyI2HOFGAzU5eibX4g5oUCdx8J1i875aAAY6Tw_w3XnzdzSdO7JYSy2W0K-qIAfFWhYRg/exec'; // <-- PASTE SCRIPT URL HERE
+        <button onclick="commitProfileSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="save" class="w-4 h-4"></i> Commit Profile Matrix
+        </button>
+      </div>
+    </section>
 
-  // Theme Toggle
-  function toggleTheme() {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
-    document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  }
+    <!-- ================= MODAL STAGE: SUCCESS ESCROW RESOLUTIONS ================= -->
+    <div id="successModalStage" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="glass-card max-w-md w-full p-6 rounded-2xl shadow-2xl animate-scale-up space-y-6">
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
+            <i data-lucide="badge-check" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold tracking-tight">Transaction Ledger Recorded Securely</h3>
+          <p class="text-xs text-slate-400 dark:text-slate-500">Document generation cycle completed. Secure PDF link compiled and active.</p>
+        </div>
 
-  // Dynamic Line Items
-  function addItem() {
-    const row = document.createElement('div');
-    row.className = 'item-row';
-    row.innerHTML = `
-      <input type="text" class="item-desc" placeholder="Description" required>
-      <input type="number" class="item-price" placeholder="Amount (ZMW)" oninput="calculateTotals()" required>
-    `;
-    document.getElementById('itemsContainer').appendChild(row);
-  }
+        <div class="space-y-2">
+          <a id="modalPdfLink" href="#" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Open Official PDF
+          </a>
+          <a id="modalWhatsappLink" href="#" target="_blank" class="w-full bg-[#25D366] hover:bg-[#22c35e] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
+            <i data-lucide="message-square" class="w-4 h-4"></i> Share To WhatsApp Mobile
+          </a>
+          <button onclick="closeSuccessModalStage()" class="w-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-medium py-3 rounded-xl transition-all text-sm">
+            Return to Operating Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
 
-  // Self-Tabulating Math Logic (Prevents Mismatches)
-  let currentTotals = { subtotal: 0, taxAmount: 0, total: 0, items: [] };
+  </main>
 
-  function calculateTotals() {
-    const descs = document.querySelectorAll('.item-desc');
-    const prices = document.querySelectorAll('.item-price');
-    const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-    
-    let subtotal = 0;
-    let items = [];
+  <!-- ================= MASTER CONTROLLER APPLICATION CODE ================= -->
+  <script>
+    // CRITICAL ASSIGNMENT CONTEXT: Paste Google Apps Script Web App Deployment URL below
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyI2HOFGAzU5eibX4g5oUCdx8J1i875aAAY6Tw_w3XnzdzSdO7JYSy2W0K-qIAfFWhYRg/exec';
 
-    for (let i = 0; i < prices.length; i++) {
-      const price = parseFloat(prices[i].value) || 0;
-      subtotal += price;
-      if (descs[i].value || price > 0) {
-        items.push({ desc: descs[i].value || 'Item', total: price });
+    // Application State Engine Caches
+    let systemState = {
+      theme: 'light',
+      documents: JSON.parse(localStorage.getItem('vyeta_docs')) || [],
+      profile: JSON.parse(localStorage.getItem('vyeta_profile')) || {
+        businessName: 'Vyeta Solutions Africa Ltd',
+        tpin: '1002394857',
+        address: 'Sapele Road, Central Business District, Lusaka, Zambia'
       }
-    }
-
-    const taxAmount = subtotal * (taxRate / 100);
-    const total = subtotal + taxAmount;
-
-    // Update State
-    currentTotals = { subtotal, taxAmount, total, items, taxRate };
-
-    // Update UI
-    document.getElementById('uiSubtotal').innerText = `K ${subtotal.toFixed(2)}`;
-    document.getElementById('uiTax').innerText = `K ${taxAmount.toFixed(2)}`;
-    document.getElementById('uiTotal').innerText = `K ${total.toFixed(2)}`;
-  }
-
-  // Form Submission
-  document.getElementById('vyetaForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    calculateTotals(); // Final check
-    
-    const btn = document.getElementById('submitBtn');
-    btn.innerText = 'Generating PDF...';
-    btn.disabled = true;
-
-    const payload = {
-      businessName: 'Vyeta Digital Solutions',
-      docType: document.getElementById('docType').value,
-      customerName: document.getElementById('customerName').value,
-      items: currentTotals.items,
-      subtotal: currentTotals.subtotal,
-      taxRate: currentTotals.taxRate,
-      taxAmount: currentTotals.taxAmount,
-      total: currentTotals.total
     };
 
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        // 'text/plain' prevents complex CORS preflight issues on some devices
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      
-      const result = await response.json();
-      
-      if(result.success) {
-        document.getElementById('formState').style.display = 'none';
-        document.getElementById('successState').style.display = 'block';
-        document.getElementById('pdfLink').href = result.pdfUrl;
-      } else {
-        alert('Error: ' + result.error);
-      }
-    } catch (error) {
-      alert('Network error. Ensure Web App is deployed as "Anyone".');
-    } finally {
-      btn.innerText = 'Generate Document';
-      btn.disabled = false;
-    }
-  });
+    // Chart Object References
+    let flowChartInstance = null;
+    let splitChartInstance = null;
 
-  function resetForm() {
-    document.getElementById('vyetaForm').reset();
-    document.getElementById('itemsContainer').innerHTML = `
-      <div class="item-row">
-        <input type="text" class="item-desc" placeholder="Description" required>
-        <input type="number" class="item-price" placeholder="Amount (ZMW)" oninput="calculateTotals()" required>
-      </div>`;
-    calculateTotals();
-    document.getElementById('formState').style.display = 'block';
-    document.getElementById('successState').style.display = 'none';
-  }
-</script>
+    // Initialization Hook
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      bootstrapSystemState();
+      switchView('dashboard');
+    });
+
+    function bootstrapSystemState() {
+      // Setup initial visual style config matches
+      if (localStorage.getItem('vyeta_theme') === 'dark' || (!('vyeta_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        systemState.theme = 'dark';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        systemState.theme = 'light';
+      }
+
+      // Sync settings parameters value fields
+      document.getElementById('settingBusinessName').value = systemState.profile.businessName;
+      document.getElementById('settingTpin').value = systemState.profile.tpin;
+      document.getElementById('settingAddress').value = systemState.profile.address;
+
+      runMatrixCalculations();
+      refreshDashboardMetrics();
+    }
+
+    function toggleTheme() {
+      const targetTheme = systemState.theme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', targetTheme);
+      systemState.theme = targetTheme;
+      localStorage.setItem('vyeta_theme', targetTheme);
+      if (flowChartInstance && splitChartInstance) {
+        refreshDashboardMetrics(); // Re-renders charting canvas to sync with theme lines styles
+      }
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-pane').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`view-section-${viewId}`).classList.remove('hidden');
+
+      // Update Nav Class Active States Matrices
+      document.querySelectorAll('nav button').forEach(btn => {
+        btn.className = "flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 w-full transition-all group";
+      });
+
+      const activeBtn = document.getElementById(`nav-${viewId}`);
+      if (activeBtn) {
+        activeBtn.className = "flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 w-full transition-all group";
+      }
+
+      // Contextual Header Copy Overrides
+      const breadcrumb = document.getElementById('view-breadcrumb');
+      const title = document.getElementById('view-title');
+      
+      if (viewId === 'dashboard') { breadcrumb.innerText = 'Overview'; title.innerText = 'Enterprise Metrics'; refreshDashboardMetrics(); }
+      if (viewId === 'generator') { breadcrumb.innerText = 'Instruments'; title.innerText = 'Document Generator Engine'; populateCustomerDataDatalists(); }
+      if (viewId === 'crm') { breadcrumb.innerText = 'CRM Ledger'; title.innerText = 'Customer Accounts Accounts'; renderCrmTableLogs(); }
+      if (viewId === 'settings') { breadcrumb.innerText = 'System Config'; title.innerText = 'Operational Profiles'; }
+    }
+
+    // Dynamic Multi-Row Processing Methods
+    function addNewLineItem() {
+      const container = document.getElementById('itemsMatrixContainer');
+      const row = document.createElement('div');
+      row.className = 'grid grid-cols-12 gap-2 items-center dynamic-item-row group';
+      row.innerHTML = `
+        <div class="col-span-6 sm:col-span-7">
+          <input type="text" placeholder="Product details / Service ledger" required class="item-desc w-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+        </div>
+        <div class="col-span-2">
+          <input type="number" placeholder="Qty" value="1" min="1" oninput="runMatrixCalculations()" required class="item-qty w-full text-center bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+        </div>
+        <div class="col-span-3 col-start-9 sm:col-span-2 sm:col-start-10">
+          <input type="number" placeholder="Price" step="0.01" oninput="runMatrixCalculations()" required class="item-price w-full text-right bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+        </div>
+        <div class="col-span-1 flex justify-center">
+          <button type="button" onclick="removeLineItemRow(this)" class="text-slate-300 hover:text-rose-500 transition-colors p-1">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `;
+      container.appendChild(row);
+      lucide.createIcons();
+    }
+
+    function removeLineItemRow(buttonElement) {
+      const rows = document.querySelectorAll('.dynamic-item-row');
+      if (rows.length > 1) {
+        buttonElement.closest('.dynamic-item-row').remove();
+        runMatrixCalculations();
+      } else {
+        alert("System structural integrity rule: At least one baseline product entry row must be defined.");
+      }
+    }
+
+    // Engine Math Logic Rules Calculation Block
+    let computedTotalsEscrow = { subtotal: 0, discount: 0, tax: 0, net: 0, items: [] };
+
+    function runMatrixCalculations() {
+      const descs = document.querySelectorAll('.item-desc');
+      const qtys = document.querySelectorAll('.item-qty');
+      const prices = document.querySelectorAll('.item-price');
+      const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+      const discountRate = parseFloat(document.getElementById('discountRate').value) || 0;
+
+      let subtotalAccumulator = 0;
+      let packedItemsMatrix = [];
+
+      for (let i = 0; i < prices.length; i++) {
+        const qty = parseFloat(qtys[i].value) || 0;
+        const price = parseFloat(prices[i].value) || 0;
+        const lineTotal = qty * price;
+        subtotalAccumulator += lineTotal;
+
+        if (descs[i].value || lineTotal > 0) {
+          packedItemsMatrix.push({
+            desc: descs[i].value || 'Standard Line Entry Item',
+            qty: qty,
+            price: price,
+            total: lineTotal
+          });
+        }
+      }
+
+      const discountDeduction = subtotalAccumulator * (discountRate / 100);
+      const postDiscountValue = subtotalAccumulator - discountDeduction;
+      const taxLiability = postDiscountValue * (taxRate / 100);
+      const absoluteNetTotal = postDiscountValue + taxLiability;
+
+      computedTotalsEscrow = {
+        subtotal: subtotalAccumulator,
+        discount: discountDeduction,
+        tax: taxLiability,
+        net: absoluteNetTotal,
+        items: packedItemsMatrix,
+        taxRate: taxRate,
+        discountRate: discountRate
+      };
+
+      // Push execution updates out cleanly to metrics frames
+      document.getElementById('summarySubtotal').innerText = `K ${subtotalAccumulator.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('summaryDiscount').innerText = `- K ${discountDeduction.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('summaryTax').innerText = `K ${taxLiability.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('summaryNetTotal').innerText = `K ${absoluteNetTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    // API Pipeline Interactivity Modules
+    async function handleDocSubmission(event) {
+      event.preventDefault();
+      runMatrixCalculations(); // Freeze-frame validation call
+      
+      const btn = document.getElementById('masterSubmitButton');
+      const initialBtnText = btn.innerHTML;
+      btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Compiling Assets Matrix...`;
+      btn.disabled = true;
+
+      const networkPayload = {
+        businessName: systemState.profile.businessName,
+        tpin: systemState.profile.tpin,
+        address: systemState.profile.address,
+        docType: document.getElementById('docType').value,
+        customerName: document.getElementById('customerName').value,
+        items: computedTotalsEscrow.items,
+        subtotal: computedTotalsEscrow.subtotal,
+        discountRate: computedTotalsEscrow.discountRate,
+        discountAmount: computedTotalsEscrow.discount,
+        taxRate: computedTotalsEscrow.taxRate,
+        taxAmount: computedTotalsEscrow.tax,
+        total: computedTotalsEscrow.net
+      };
+
+      try {
+        const networkResponse = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Bypasses complex CORS intercept policies on mobile browsers
+          body: JSON.stringify({ action: 'CREATE_DOCUMENT', payload: networkPayload })
+        });
+
+        const resolution = await networkResponse.json();
+
+        if (resolution.success) {
+          // Commit dynamic localized registration logs elements
+          const localRecordInstance = {
+            docId: resolution.documentId || 'VY-' + Date.now(),
+            date: new Date().toISOString(),
+            customerName: networkPayload.customerName,
+            docType: networkPayload.docType,
+            total: networkPayload.total,
+            pdfUrl: resolution.pdfUrl
+          };
+
+          systemState.documents.unshift(localRecordInstance);
+          localStorage.setItem('vyeta_docs', JSON.stringify(systemState.documents));
+
+          // Trigger view output state visibility shifts
+          document.getElementById('modalPdfLink').href = resolution.pdfUrl;
+          document.getElementById('modalWhatsappLink').href = `https://wa.me/?text=${resolution.whatsappText}`;
+          document.getElementById('successModalStage').classList.remove('hidden');
+          document.getElementById('masterDocForm').reset();
+          runMatrixCalculations();
+        } else {
+          alert(`Compilation Terminal Flag Exception Error: ${resolution.error}`);
+        }
+      } catch (error) {
+        alert("Infrastructure Connectivity Break Error. Validate web deployment configuration rules settings or verification parameters maps.");
+      } finally {
+        btn.innerHTML = initialBtnText;
+        btn.disabled = false;
+      }
+    }
+
+    function closeSuccessModalStage() {
+      document.getElementById('successModalStage').classList.add('hidden');
+      switchView('dashboard');
+    }
+
+    function commitProfileSettings() {
+      systemState.profile = {
+        businessName: document.getElementById('settingBusinessName').value || 'Vyeta Enterprise',
+        tpin: document.getElementById('settingTpin').value || 'N/A',
+        address: document.getElementById('settingAddress').value || 'N/A'
+      };
+      localStorage.setItem('vyeta_profile', JSON.stringify(systemState.profile));
+      alert("Profile context committed securely onto internal system arrays.");
+      switchView('dashboard');
+    }
+
+    // Analytical Processing & CRM Computation Blocks
+    function calculateAnalyticsAggregates() {
+      let totalInvoicedValue = 0;
+      let totalOutstandingBalanceValue = 0;
+      let metricsCountMap = { Invoice: 0, Quotation: 0, Receipt: 0, 'Delivery Note': 0 };
+
+      systemState.documents.forEach(doc => {
+        const cashValue = parseFloat(doc.total) || 0;
+        if (doc.docType === 'Invoice') {
+          totalOutstandingBalanceValue += cashValue; // Mocks total unpaid structure state loops tracking values
+        } else if (doc.docType === 'Receipt') {
+          totalInvoicedValue += cashValue;
+        }
+        if (metricsCountMap[doc.docType] !== undefined) {
+          metricsCountMap[doc.docType]++;
+        }
+      });
+
+      return { collected: totalInvoicedValue, outstanding: totalOutstandingBalanceValue, quotes: metricsCountMap['Quotation'], splitMap: metricsCountMap };
+    }
+
+    function refreshDashboardMetrics() {
+      const aggregates = calculateAnalyticsAggregates();
+      
+      document.getElementById('dash-collected').innerText = `K ${aggregates.collected.toLocaleString('en-US', {minimumFractionDigits:2})}`;
+      document.getElementById('dash-outstanding').innerText = `K ${aggregates.outstanding.toLocaleString('en-US', {minimumFractionDigits:2})}`;
+      document.getElementById('dash-quotes').innerText = aggregates.quotes;
+
+      // Activity Feed Logs Pipeline Matrix Parsing Logic
+      const container = document.getElementById('recent-activity-container');
+      if (systemState.documents.length === 0) {
+        container.innerHTML = `<p class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">No logs found on internal cache arrays pipelines.</p>`;
+      } else {
+        container.innerHTML = systemState.documents.slice(0, 5).map(doc => `
+          <div class="p-4 sm:px-6 hover:bg-slate-100/30 dark:hover:bg-slate-900/30 flex justify-between items-center text-xs sm:text-sm transition-colors duration-150">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="font-semibold text-slate-900 dark:text-slate-100">${doc.customerName}</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">${doc.docType} • ${new Date(doc.date).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div class="text-right flex items-center gap-3">
+              <span class="font-semibold text-slate-900 dark:text-slate-100">K ${parseFloat(doc.total).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+              <a href="${doc.pdfUrl}" target="_blank" class="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+            </div>
+          </div>
+        `).join('');
+        lucide.createIcons();
+      }
+
+      // Initialize System Render Charts Processes
+      renderHighFidelityCharts(aggregates);
+    }
+
+    function buildCrmMapRecords() {
+      let clientLedgerAggregationMatrix = {};
+      systemState.documents.forEach(doc => {
+        if (!clientLedgerAggregationMatrix[doc.customerName]) {
+          clientLedgerAggregationMatrix[doc.customerName] = { spend: 0, lastActive: doc.date };
+        }
+        clientLedgerAggregationMatrix[doc.customerName].spend += parseFloat(doc.total) || 0;
+        if (new Date(doc.date) > new Date(clientLedgerAggregationMatrix[doc.customerName].lastActive)) {
+          clientLedgerAggregationMatrix[doc.customerName].lastActive = doc.date;
+        }
+      });
+      return clientLedgerAggregationMatrix;
+    }
+
+    function renderCrmTableLogs() {
+      const crmMap = buildCrmMapRecords();
+      const body = document.getElementById('crmTableBody');
+      const entries = Object.entries(crmMap);
+
+      if (entries.length === 0) {
+        body.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-slate-400">No cached dynamic system tracking metrics located inside active scopes.</td></tr>`;
+      } else {
+        body.innerHTML = entries.map(([name, data]) => `
+          <tr class="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 transition-colors">
+            <td class="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">${name}</td>
+            <td class="px-6 py-4 text-right font-medium text-slate-900 dark:text-slate-100">K ${data.spend.toLocaleString('en-US', {minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 text-right text-xs text-slate-400 dark:text-slate-500">${new Date(data.lastActive).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function populateCustomerDataDatalists() {
+      const crmMap = buildCrmMapRecords();
+      const listElement = document.getElementById('customerHistoryList');
+      listElement.innerHTML = Object.keys(crmMap).map(clientName => `<option value="${clientName}"></option>`).join('');
+    }
+
+    function renderHighFidelityCharts(aggregates) {
+      const isDark = systemState.theme === 'dark';
+      const textGridColor = isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(107, 114, 128, 0.05)';
+      const labelTextColor = isDark ? '#9ca3af' : '#6b7280';
+
+      // 1. Line Performance Flow Chart Destroy/Create Loop
+      if (flowChartInstance) flowChartInstance.destroy();
+      const ctxLine = document.getElementById('analyticsChart').getContext('2d');
+      
+      // Compute timeline dynamic array labels sequence historical slots values metrics
+      const chronologicalDocs = [...systemState.documents].reverse();
+      const chartPointsData = chronologicalDocs.slice(-6).map(d => parseFloat(d.total) || 0);
+      const chartLabelsData = chronologicalDocs.slice(-6).map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'}));
+
+      flowChartInstance = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+          labels: chartLabelsData.length ? chartLabelsData : ['Blank Data Frame'],
+          datasets: [{
+            label: 'Transaction Magnitude',
+            data: chartPointsData.length ? chartPointsData : [0],
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.04)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true,
+            pointBackgroundColor: '#2563eb'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: textGridColor }, ticks: { color: labelTextColor, font: { size: 10 } } },
+            y: { grid: { color: textGridColor }, ticks: { color: labelTextColor, font: { size: 10 } } }
+          }
+        }
+      });
+
+      // 2. Split Structural Metric Chart Destroy/Create Loop
+      if (splitChartInstance) splitChartInstance.destroy();
+      const ctxPie = document.getElementById('pieChart').getContext('2d');
+      splitChartInstance = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+          labels: ['Invoices', 'Quotations', 'Receipts', 'Delivery Notes'],
+          datasets: [{
+            data: [aggregates.splitMap['Invoice'], aggregates.splitMap['Quotation'], aggregates.splitMap['Receipt'], aggregates.splitMap['Delivery Note']],
+            backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1'],
+            borderWidth: isDark ? 3 : 1.5,
+            borderColor: isDark ? '#0f172a' : '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: labelTextColor, font: { size: 11 }, padding: 12 } } },
+          cutout: '75%'
+        }
+      });
+    }
+  </script>
 </body>
 </html>
