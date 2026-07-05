@@ -9,7 +9,8 @@ import {
   SunMoon,
   LogOut,
   ShoppingCart,
-  WifiOff
+  WifiOff,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,7 +20,7 @@ const linkActive = 'text-gold-600 dark:text-gold-400 bg-gold-500/10';
 const linkInactive = 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5';
 
 export default function Sidebar({ theme, onToggleTheme, isOnline }) {
-  const { isManager, organization, profile, signOut } = useAuth();
+  const { isManager, organization, profile, role, signOut } = useAuth();
 
   const managerLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,7 +36,9 @@ export default function Sidebar({ theme, onToggleTheme, isOnline }) {
     { to: '/customers', label: 'Customers', icon: Users }
   ];
 
-  const links = isManager ? managerLinks : employeeLinks;
+  const platformAdminLinks = [{ to: '/admin/approvals', label: 'Approvals', icon: ShieldCheck }];
+
+  const links = role === 'platform_admin' ? platformAdminLinks : isManager ? managerLinks : employeeLinks;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 md:top-0 md:right-auto md:w-64 md:h-screen glass-nav border-t md:border-t-0 md:border-r z-50 flex md:flex-col justify-between px-4 sm:px-6 py-2 md:py-8">

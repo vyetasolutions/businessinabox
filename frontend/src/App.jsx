@@ -5,12 +5,14 @@ import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 import ManagerDashboard from './pages/ManagerDashboard';
 import DocumentGenerator from './pages/DocumentGenerator';
 import Inventory from './pages/Inventory';
 import Customers from './pages/Customers';
 import Settings from './pages/Settings';
 import EmployeePos from './pages/EmployeePos';
+import AdminApprovals from './pages/AdminApprovals';
 import { useAuth } from './context/AuthContext';
 import { initOfflineSyncListener } from './lib/offlineSync';
 
@@ -87,11 +89,23 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<SignUp />} />
+
+      <Route
+        path="/admin/approvals"
+        element={
+          <ProtectedRoute allow={['platform_admin']}>
+            <AppShell title="Business Approvals" breadcrumb="Platform Admin">
+              <AdminApprovals />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allow={['manager', 'platform_admin']}>
+          <ProtectedRoute allow={['manager']}>
             <AppShell title="Welcome Back" breadcrumb="Overview">
               <ManagerDashboard />
             </AppShell>
@@ -102,7 +116,7 @@ export default function App() {
       <Route
         path="/generator"
         element={
-          <ProtectedRoute allow={['manager', 'platform_admin']}>
+          <ProtectedRoute allow={['manager']}>
             <AppShell title="New Document" breadcrumb="Create">
               <DocumentGenerator />
             </AppShell>
@@ -135,7 +149,7 @@ export default function App() {
       <Route
         path="/settings"
         element={
-          <ProtectedRoute allow={['manager', 'platform_admin']}>
+          <ProtectedRoute allow={['manager']}>
             <AppShell title="Business Profile" breadcrumb="Settings">
               <Settings />
             </AppShell>

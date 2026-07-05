@@ -245,10 +245,164 @@ app.post('/api/trigger-whatsapp', async (req, res) => {
   }
 });
 
+// ============================================================================
+// ENDPOINT 3: POST /api/signup-business
+// ============================================================================
+// Public endpoint — a new business creates its own account. The organization
+// starts as 'pending' (enforced in the database, not just here) until a
+// Platform Admin approves it via /api/admin/approve-organization. The Manager
+// account itself works immediately, but their dashboard shows a "pending
+// approval" screen until then (see frontend PendingApproval.jsx).
+// ============================================================================
+app.post('/api/signup-business', async (req, res) => {
+  try {
+    const { businessName, fullName, email, password, phone } = req.body || {};
+
+    if (!businessName || !fullName || !email || !password) {
+      return res.status(400).json({ success: false, error: 'Business name, your name, email and password are all required.' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
+    }
+
+    // 1. Create the organization as 'pending'
+    const { data: org, error: orgError } = await supabaseAdmin
+      .from('organizations')
+      .insert({ name: businessName, phone: phone || null, status: 'pending' })
+      .select()
+      .single();
+
+    if (orgError) {
+      return res.status(500).json({ success: false, error: 'Could not create business: ' + orgError.message });
+    }
+
+    // 2. Create the Auth user
+    const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName, role: 'manager' },
+    });
+
+    if (createError) {
+      // Roll back the organization so we don't leave an orphaned pending business
+      await supabaseAdmin.from('organizations').delete().eq('id', org.id);
+      return res.status(400).json({ success: false, error: createError.message });
+    }
+
+    // 3. Create their profile as 'manager' of the new organization
+    const { error: profileError } = await supabaseAdmin.from('profiles').insert({
+      id: created.user.id,
+      organization_id: org.id,
+      full_name: fullName,
+      role: 'manager',
+      is_active: true,
+    });
+
+    if (profileError) {
+      await supabaseAdmin.auth.admin.deleteUser(created.user.id);
+      await supabaseAdmin.from('organizations').delete().eq('id', org.id);
+      return res.status(500).json({ success: false, error: 'Failed to set up your account: ' + profileError.message });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Account created! Your business is pending approval before you can start using the platform.',
+    });
+  } catch (err) {
+    console.error('signup-business error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while signing up.' });
+  }
+});
+
 // ---------------------------------------------------------------------------
-// Health check — also doubles as a free "keep the Render instance warm" ping
-// target if you wire up an external uptime pinger (see deployment guide).
+// Helper: verify the caller is a Platform Admin. Reuses getRequestingProfile.
 // ---------------------------------------------------------------------------
+async function requirePlatformAdmin(req, res) {
+  const { profile, error } = await getRequestingProfile(req);
+  if (error) {
+    res.status(401).json({ success: false, error });
+    return null;
+  }
+  if (profile.role !== 'platform_admin') {
+    res.status(403).json({ success: false, error: 'Only Platform Admins can do this.' });
+    return null;
+  }
+  return profile;
+}
+
+// ============================================================================
+// ENDPOINT 4: GET /api/admin/pending-organizations
+// ============================================================================
+app.get('/api/admin/pending-organizations', async (req, res) => {
+  const admin = await requirePlatformAdmin(req, res);
+  if (!admin) return;
+
+  try {
+    const { data: orgs, error } = await supabaseAdmin
+      .from('organizations')
+      .select('id, name, phone, status, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+
+    if (error) return res.status(500).json({ success: false, error: error.message });
+
+    // Attach the Manager's name/email for each pending org so the admin
+    // knows who they're approving.
+    const orgsWithManager = await Promise.all(
+      orgs.map(async (org) => {
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name, id')
+          .eq('organization_id', org.id)
+          .eq('role', 'manager')
+          .limit(1)
+          .maybeSingle();
+
+        let email = null;
+        if (profile?.id) {
+          const { data: userData } = await supabaseAdmin.auth.admin.getUserById(profile.id);
+          email = userData?.user?.email || null;
+        }
+
+        return { ...org, managerName: profile?.full_name || 'Unknown', managerEmail: email };
+      })
+    );
+
+    return res.json({ success: true, organizations: orgsWithManager });
+  } catch (err) {
+    console.error('pending-organizations error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while listing pending businesses.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT 5: POST /api/admin/approve-organization
+// ============================================================================
+app.post('/api/admin/approve-organization', async (req, res) => {
+  const admin = await requirePlatformAdmin(req, res);
+  if (!admin) return;
+
+  try {
+    const { organizationId, approve } = req.body || {};
+    if (!organizationId || typeof approve !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'organizationId and approve (true/false) are required.' });
+    }
+
+    const newStatus = approve ? 'active' : 'suspended';
+    const { error } = await supabaseAdmin.from('organizations').update({ status: newStatus }).eq('id', organizationId);
+
+    if (error) return res.status(500).json({ success: false, error: error.message });
+
+    return res.json({ success: true, status: newStatus });
+  } catch (err) {
+    console.error('approve-organization error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while updating business status.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'vyeta-business-hub-backend', time: new Date().toISOString() });
 });

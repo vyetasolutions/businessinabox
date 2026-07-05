@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,7 +11,8 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
 
   if (!loading && session) {
-    return <Navigate to={role === 'employee' ? '/pos' : '/dashboard'} replace />;
+    const destination = role === 'employee' ? '/pos' : role === 'platform_admin' ? '/admin/approvals' : '/dashboard';
+    return <Navigate to={destination} replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -67,7 +68,11 @@ export default function Login() {
         </form>
 
         <p className="text-[11px] text-center text-slate-400 dark:text-slate-500 mt-6">
-          New businesses are onboarded by Vyeta Digital Solutions. Employees are added by their Manager from inside the app.
+          New business?{' '}
+          <Link to="/signup" className="font-bold text-gold-600 dark:text-gold-400">
+            Create an account
+          </Link>
+          . Employees are added by their Manager from inside the app.
         </p>
       </div>
     </div>
