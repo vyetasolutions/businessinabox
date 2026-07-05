@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ----------------------------------------------------------------------
+   Glassmorphism utilities — the visual signature of the app.
+   Use `glass-panel` on cards, `glass-nav` on the sidebar/bottom nav.
+---------------------------------------------------------------------- */
+@layer components {
+  .glass-panel {
+    @apply bg-white/80 dark:bg-[#0A1128]/50 backdrop-blur-xl border border-slate-200/50 dark:border-amber-500/20 shadow-premium;
+  }
+
+  .glass-nav {
+    @apply bg-white/90 dark:bg-[#050B1F]/70 backdrop-blur-xl border-slate-200/60 dark:border-amber-500/10;
+  }
+
+  .btn-gold {
+    @apply bg-gradient-to-b from-gold-400 to-gold-600 text-midnight-950 font-bold shadow-gold
+           hover:brightness-105 active:scale-[0.98] transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2
+           focus:ring-offset-white dark:focus:ring-offset-midnight-950;
+  }
+
+  .btn-ghost {
+    @apply bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-200
+           hover:bg-slate-200 dark:hover:bg-white/10 transition-all duration-150
+           border border-slate-200 dark:border-white/10;
+  }
+
+  .input-field {
+    @apply w-full bg-white dark:bg-midnight-900/60 border border-slate-300 dark:border-amber-500/15
+           rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100
+           placeholder:text-slate-400 dark:placeholder:text-slate-500
+           focus:outline-none focus:ring-2 focus:ring-gold-500/70 focus:border-gold-500/50
+           transition-all;
+  }
+
+  .label-field {
+    @apply block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2 tracking-wide;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1;
+  }
+
+  .section-eyebrow {
+    @apply text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Full-screen boot loader — "Business Suite / Powered by Vyeta Digital Solutions"
+---------------------------------------------------------------------- */
+.loader-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: radial-gradient(ellipse at top, #0f1a3d 0%, #020617 65%);
+}
+
+.loader-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 32px;
+  color: #020617;
+  background: linear-gradient(135deg, #f5db8f, #d4972a 60%, #b3791f);
+  box-shadow: 0 0 40px rgba(212, 151, 42, 0.35);
+  position: relative;
+}
+
+.loader-mark::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 26px;
+  border: 1px solid rgba(212, 151, 42, 0.4);
+  animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.loader-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f8fafc;
+}
+
+.loader-subtitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b0c0e8;
+  opacity: 0.75;
+}
+
+.loader-bar-track {
+  width: 180px;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(176, 192, 232, 0.15);
+}
+
+.loader-bar-fill {
+  height: 100%;
+  width: 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #f0c356, #d4972a, #f0c356, transparent);
+  background-size: 200% 100%;
+  animation: loader-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Scrollbar hiding utility, carried over from the original build */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
