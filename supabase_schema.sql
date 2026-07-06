@@ -55,7 +55,11 @@ create table if not exists public.inventory (
 );
 
 create index if not exists idx_inventory_org on public.inventory(organization_id);
-create index if not exists idx_inventory_name on public.inventory using gin (to_tsvector('english', name));
+-- pg_trgm powers fast partial-text search (ILIKE '%term%') — required for the
+-- inventory/stock search boxes in the app to stay fast as stock lists grow.
+create extension if not exists pg_trgm;
+
+create index if not exists idx_inventory_name_trgm on public.inventory using gin (name gin_trgm_ops);
 
 -- ============================================================================
 -- 4. DOCUMENTS  (invoices, quotations, receipts, delivery notes)

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { SunMoon, WifiOff } from 'lucide-react';
+import { SunMoon, WifiOff, LogOut } from 'lucide-react';
 import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Footer from './components/Footer';
 import ManagerDashboard from './pages/ManagerDashboard';
 import DocumentGenerator from './pages/DocumentGenerator';
 import Inventory from './pages/Inventory';
@@ -17,6 +21,7 @@ import { useAuth } from './context/AuthContext';
 import { initOfflineSyncListener } from './lib/offlineSync';
 
 function AppShell({ children, title, breadcrumb }) {
+  const { signOut } = useAuth();
   const [theme, setTheme] = useState(() => localStorage.getItem('vyeta_theme') || 'light');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -60,10 +65,19 @@ function AppShell({ children, title, breadcrumb }) {
           <button onClick={toggleTheme} className="md:hidden p-2.5 rounded-xl glass-panel">
             <SunMoon className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => {
+              if (confirm('Sign out of Vyeta Business Hub?')) signOut();
+            }}
+            className="md:hidden p-2.5 rounded-xl glass-panel text-rose-500"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
       </header>
 
       <main className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto">{children}</main>
+      <Footer variant="dark" />
     </div>
   );
 }
@@ -90,6 +104,9 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
       <Route
         path="/admin/approvals"

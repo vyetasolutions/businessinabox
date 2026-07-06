@@ -43,8 +43,8 @@ export default function Sidebar({ theme, onToggleTheme, isOnline }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 md:top-0 md:right-auto md:w-64 md:h-screen glass-nav border-t md:border-t-0 md:border-r z-50 flex md:flex-col justify-between px-4 sm:px-6 py-2 md:py-8">
       <div className="hidden md:flex items-center gap-3 px-2 mb-8">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold-300 to-gold-600 flex items-center justify-center text-midnight-950 font-bold text-lg shadow-gold font-display">
-          V
+        <div className="w-9 h-9 rounded-xl bg-midnight-950 flex items-center justify-center shadow-gold overflow-hidden shrink-0">
+          <img src="/vyeta-mark.png" alt="Vyeta" className="w-6 h-6 object-contain" />
         </div>
         <div>
           <h1 className="font-bold tracking-tight text-sm text-slate-900 dark:text-white">

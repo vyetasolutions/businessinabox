@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { BACKEND_URL } from '../lib/supabaseClient';
+import BrandMark from '../components/BrandMark';
+import Footer from '../components/Footer';
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ businessName: '', phone: '', fullName: '', email: '', password: '' });
+  const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -35,7 +38,7 @@ export default function SignUp() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4">
         <div className="w-full max-w-sm glass-panel rounded-3xl p-8 text-center space-y-4 animate-fade-in">
           <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-7 h-7" />
@@ -49,16 +52,17 @@ export default function SignUp() {
             Go to Sign In
           </Link>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4 py-10">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4 py-10">
       <div className="w-full max-w-sm glass-panel rounded-3xl p-8 animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold-300 to-gold-600 flex items-center justify-center text-midnight-950 mb-4 shadow-gold">
-            <Building2 className="w-7 h-7" />
+          <div className="mb-4">
+            <BrandMark size={64} />
           </div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Register your business</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-center">
@@ -90,7 +94,24 @@ export default function SignUp() {
 
           {error && <p className="text-xs font-semibold text-rose-500 bg-rose-500/10 rounded-lg px-3 py-2">{error}</p>}
 
-          <button type="submit" disabled={submitting} className="btn-gold w-full py-3.5 rounded-xl font-bold disabled:opacity-60">
+          <label className="flex items-start gap-2.5 text-[11px] text-slate-500 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              required
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 accent-gold-500 w-3.5 h-3.5 shrink-0"
+            />
+            <span>
+              I agree to the{' '}
+              <Link to="/privacy-policy" target="_blank" className="font-bold text-gold-600 dark:text-gold-400 underline">
+                Privacy Policy
+              </Link>{' '}
+              and consent to my business and customer data being processed as described.
+            </span>
+          </label>
+
+          <button type="submit" disabled={submitting || !agreed} className="btn-gold w-full py-3.5 rounded-xl font-bold disabled:opacity-60">
             {submitting ? 'Creating your account…' : 'Create Business Account'}
           </button>
         </form>
@@ -99,6 +120,7 @@ export default function SignUp() {
           Already have an account? <Link to="/login" className="font-bold text-gold-600 dark:text-gold-400">Sign in</Link>
         </p>
       </div>
+      <Footer />
     </div>
   );
 }

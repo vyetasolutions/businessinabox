@@ -1,13 +1,14 @@
 import React from 'react';
 import { Hourglass, LogOut, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Footer from '../components/Footer';
 
 export default function PendingApproval() {
   const { organization, signOut } = useAuth();
   const suspended = organization?.status === 'suspended';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4">
       <div className="w-full max-w-sm glass-panel rounded-3xl p-8 text-center space-y-4 animate-fade-in">
         <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto ${suspended ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-500'}`}>
           {suspended ? <ShieldAlert className="w-7 h-7" /> : <Hourglass className="w-7 h-7" />}
@@ -24,6 +25,7 @@ export default function PendingApproval() {
           <LogOut className="w-4 h-4" /> Sign Out
         </button>
       </div>
+      <Footer />
     </div>
   );
 }

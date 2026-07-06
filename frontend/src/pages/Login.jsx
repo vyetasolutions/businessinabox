@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import BrandMark from '../components/BrandMark';
+import Footer from '../components/Footer';
 
 export default function Login() {
   const { session, signIn, loading, role } = useAuth();
@@ -25,11 +27,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-midnight-950 px-4">
       <div className="w-full max-w-sm glass-panel rounded-3xl p-8 animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold-300 to-gold-600 flex items-center justify-center text-midnight-950 font-bold text-2xl shadow-gold font-display mb-4">
-            V
+          <div className="mb-4">
+            <BrandMark size={64} />
           </div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Welcome back</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in to your Vyeta Business Hub</p>
@@ -47,17 +49,20 @@ export default function Login() {
               className="input-field"
             />
           </div>
-          <div>
-            <label className="label-field">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="input-field"
-            />
+          <div className="flex justify-between items-center">
+            <label className="label-field mb-0">Password</label>
+            <Link to="/forgot-password" className="text-[11px] font-bold text-gold-600 dark:text-gold-400">
+              Forgot password?
+            </Link>
           </div>
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="input-field"
+          />
 
           {error && <p className="text-xs font-semibold text-rose-500 bg-rose-500/10 rounded-lg px-3 py-2">{error}</p>}
 
@@ -75,6 +80,7 @@ export default function Login() {
           . Employees are added by their Manager from inside the app.
         </p>
       </div>
+      <Footer />
     </div>
   );
 }
