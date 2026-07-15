@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { getCachedDocuments, cacheDocumentsBulk } from '../lib/offlineSync';
 import { useAuth } from '../context/AuthContext';
+import { planAllows } from '../lib/plans';
+import { downloadCsv } from '../lib/csvExport';
 
 function buildCrmMap(documents) {
   const matrix = {};
@@ -47,11 +50,29 @@ export default function Customers() {
 
   const crmMap = buildCrmMap(documents);
   const entries = Object.entries(crmMap);
+  const reportsEnabled = planAllows(organization, 'reports');
+
+  const exportCsv = () => {
+    downloadCsv(
+      'vyeta-customers',
+      entries.map(([name, data]) => ({
+        Name: name,
+        Phone: data.phone,
+        Address: data.address,
+        'Total Billing (K)': data.spend.toFixed(2)
+      }))
+    );
+  };
 
   return (
     <div className="glass-panel rounded-2xl overflow-hidden">
-      <div className="p-6 border-b border-slate-200 dark:border-white/10">
+      <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
         <h4 className="section-eyebrow">Saved Customer Directory</h4>
+        {reportsEnabled && (
+          <button onClick={exportCsv} className="btn-ghost px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold">
+            <Download className="w-3.5 h-3.5" /> Export CSV
+          </button>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">

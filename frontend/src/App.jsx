@@ -17,6 +17,10 @@ import Customers from './pages/Customers';
 import Settings from './pages/Settings';
 import EmployeePos from './pages/EmployeePos';
 import AdminApprovals from './pages/AdminApprovals';
+import Billing from './pages/Billing';
+import Branches from './pages/Branches';
+import Expenses from './pages/Expenses';
+import NotificationBell from './components/NotificationBell';
 import { useAuth } from './context/AuthContext';
 import { initOfflineSyncListener } from './lib/offlineSync';
 
@@ -53,6 +57,7 @@ function AppShell({ children, title, breadcrumb }) {
           <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white -mt-0.5">{title}</h2>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           {!isOnline && (
             <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
               <WifiOff className="w-3 h-3" /> Offline
@@ -169,6 +174,39 @@ export default function App() {
           <ProtectedRoute allow={['manager']}>
             <AppShell title="Business Profile" breadcrumb="Settings">
               <Settings />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/billing"
+        element={
+          <ProtectedRoute allow={['manager']}>
+            <AppShell title="Billing" breadcrumb="Plan & Payments">
+              <Billing />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/branches"
+        element={
+          <ProtectedRoute allow={['manager']}>
+            <AppShell title="Branches" breadcrumb="Locations">
+              <Branches />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/expenses"
+        element={
+          <ProtectedRoute allow={['manager']}>
+            <AppShell title="Expenses" breadcrumb="Spending">
+              <Expenses />
             </AppShell>
           </ProtectedRoute>
         }

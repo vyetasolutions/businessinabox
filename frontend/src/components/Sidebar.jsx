@@ -10,7 +10,10 @@ import {
   LogOut,
   ShoppingCart,
   WifiOff,
-  ShieldCheck
+  ShieldCheck,
+  CreditCard,
+  MapPin,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,7 +29,10 @@ export default function Sidebar({ theme, onToggleTheme, isOnline }) {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/generator', label: 'Create Doc', icon: FilePlus2 },
     { to: '/inventory', label: 'Stock', icon: Boxes },
+    { to: '/expenses', label: 'Expenses', icon: Receipt },
     { to: '/customers', label: 'Customers', icon: Users },
+    { to: '/branches', label: 'Branches', icon: MapPin },
+    { to: '/billing', label: 'Billing', icon: CreditCard },
     { to: '/settings', label: 'Business Profile', icon: SettingsIcon }
   ];
 

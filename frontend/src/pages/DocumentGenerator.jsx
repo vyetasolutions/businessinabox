@@ -2,14 +2,18 @@ import React, { useMemo, useState } from 'react';
 import { ListPlus, Trash2, FileCheck2 } from 'lucide-react';
 import { useDocumentSubmission } from '../lib/useDocumentSubmission';
 import SuccessModal from '../components/SuccessModal';
+import { useAuth } from '../context/AuthContext';
+import { planAllows } from '../lib/plans';
 
-const DOC_TYPES = ['Invoice', 'Quotation', 'Receipt', 'Delivery Note'];
+const ALL_DOC_TYPES = ['Invoice', 'Quotation', 'Receipt', 'Delivery Note'];
 
 function emptyItem() {
   return { desc: '', qty: 1, price: '' };
 }
 
 export default function DocumentGenerator() {
+  const { organization } = useAuth();
+  const DOC_TYPES = ALL_DOC_TYPES.filter((t) => t !== 'Delivery Note' || planAllows(organization, 'delivery_note'));
   const [docType, setDocType] = useState('Invoice');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');

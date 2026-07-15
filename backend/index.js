@@ -10,8 +10,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const twilio = require('twilio');
+const { initiateMobileMoneyCollection, getCollectionStatusByReference } = require('./lenco');
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -54,6 +56,16 @@ const twilioClient =
   process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
     ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
     : null;
+
+// ---------------------------------------------------------------------------
+// Subscription plan prices, in Zambian Kwacha. Defined server-side only — a
+// payment amount must never be trusted from the browser.
+// ---------------------------------------------------------------------------
+const PLAN_PRICES = {
+  starter: 149,
+  professional: 299,
+  business_plus: 599
+};
 
 // ---------------------------------------------------------------------------
 // Helper: format a Zambian-style phone number into E.164 for WhatsApp.
@@ -134,6 +146,24 @@ app.post('/api/create-employee', async (req, res) => {
     }
     if (!profile.is_active) {
       return res.status(403).json({ success: false, error: 'Your account is inactive. Contact support.' });
+    }
+
+    // Employee accounts are a Business Plus feature. Checked here explicitly
+    // because this endpoint uses the service_role key and therefore bypasses
+    // the database's own RLS-based gating.
+    const { data: org, error: orgFetchError } = await supabaseAdmin
+      .from('organizations')
+      .select('plan')
+      .eq('id', profile.organization_id)
+      .single();
+
+    if (orgFetchError || !org) {
+      return res.status(500).json({ success: false, error: 'Could not verify your plan.' });
+    }
+    if (org.plan !== 'business_plus') {
+      return res
+        .status(403)
+        .json({ success: false, error: 'Adding staff accounts is a Business Plus feature. Upgrade your plan to add employees.' });
     }
 
     // 2. Create the Auth user using the Admin API (service_role key required)
@@ -312,6 +342,194 @@ app.post('/api/signup-business', async (req, res) => {
   } catch (err) {
     console.error('signup-business error:', err);
     return res.status(500).json({ success: false, error: 'Unexpected server error while signing up.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Shared helper: activate a plan on an organization after a successful payment
+// ---------------------------------------------------------------------------
+async function activateSubscription(organizationId, plan) {
+  const periodEnd = new Date();
+  periodEnd.setDate(periodEnd.getDate() + 30);
+  await supabaseAdmin
+    .from('organizations')
+    .update({ plan, subscription_status: 'active', current_period_end: periodEnd.toISOString() })
+    .eq('id', organizationId);
+}
+
+// ============================================================================
+// ENDPOINT 6: POST /api/billing/initiate-payment
+// ============================================================================
+// Called from the Billing page. Charges the business's own mobile money
+// number via Lenco for their selected plan, server-priced (never trust a
+// client-sent amount for a real payment).
+// ============================================================================
+app.post('/api/billing/initiate-payment', async (req, res) => {
+  try {
+    const { profile, error: authError } = await getRequestingProfile(req);
+    if (authError) return res.status(401).json({ success: false, error: authError });
+    if (!['manager', 'platform_admin'].includes(profile.role)) {
+      return res.status(403).json({ success: false, error: 'Only Managers can manage billing.' });
+    }
+
+    const { plan, phone, operator } = req.body || {};
+    if (!PLAN_PRICES[plan]) {
+      return res.status(400).json({ success: false, error: 'Invalid plan selected.' });
+    }
+    if (!phone || !['mtn', 'airtel', 'zamtel'].includes(operator)) {
+      return res.status(400).json({ success: false, error: 'A valid phone number and mobile money network are required.' });
+    }
+    if (!process.env.LENCO_API_KEY) {
+      return res.status(500).json({ success: false, error: 'Payments are not configured on the server yet.' });
+    }
+
+    const amount = PLAN_PRICES[plan];
+    const reference = `vyeta-${profile.organization_id}-${Date.now()}`;
+
+    const { error: insertError } = await supabaseAdmin.from('subscription_payments').insert({
+      organization_id: profile.organization_id,
+      plan,
+      amount,
+      reference,
+      phone,
+      operator,
+      status: 'pending'
+    });
+    if (insertError) {
+      return res.status(500).json({ success: false, error: 'Could not start payment: ' + insertError.message });
+    }
+
+    const lencoResult = await initiateMobileMoneyCollection({ amount, reference, phone, operator });
+
+    if (!lencoResult.status) {
+      await supabaseAdmin.from('subscription_payments').update({ status: 'failed' }).eq('reference', reference);
+      return res.status(400).json({ success: false, error: lencoResult.message || 'Payment could not be started.' });
+    }
+
+    const lencoReference = lencoResult.data?.lencoReference || null;
+    const lencoStatus = lencoResult.data?.status || 'pending';
+
+    await supabaseAdmin
+      .from('subscription_payments')
+      .update({ lenco_reference: lencoReference, status: lencoStatus === 'failed' ? 'failed' : 'pending' })
+      .eq('reference', reference);
+
+    return res.json({
+      success: true,
+      reference,
+      status: lencoStatus, // 'pending' | 'pay-offline' | 'otp-required' | 'failed'
+      message:
+        lencoStatus === 'pay-offline'
+          ? 'Check your phone to authorize the payment.'
+          : 'Payment initiated — check your phone.'
+    });
+  } catch (err) {
+    console.error('initiate-payment error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while starting payment.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT 7: GET /api/billing/payment-status/:reference
+// ============================================================================
+// Polled by the Billing page while waiting for the customer to authorize on
+// their phone. Falls back to re-querying Lenco directly if our own webhook
+// hasn't updated the record yet (webhooks can lag).
+// ============================================================================
+app.get('/api/billing/payment-status/:reference', async (req, res) => {
+  try {
+    const { profile, error: authError } = await getRequestingProfile(req);
+    if (authError) return res.status(401).json({ success: false, error: authError });
+
+    const { reference } = req.params;
+    const { data: payment, error } = await supabaseAdmin
+      .from('subscription_payments')
+      .select('*')
+      .eq('reference', reference)
+      .eq('organization_id', profile.organization_id) // can only check your own org's payments
+      .single();
+
+    if (error || !payment) {
+      return res.status(404).json({ success: false, error: 'Payment record not found.' });
+    }
+
+    // Still pending after a few seconds? Ask Lenco directly rather than only
+    // waiting on the webhook, which may be delayed.
+    if (payment.status === 'pending' && process.env.LENCO_API_KEY) {
+      const lencoResult = await getCollectionStatusByReference(reference);
+      const remoteStatus = lencoResult.data?.status;
+      if (remoteStatus === 'successful' || remoteStatus === 'failed') {
+        const newStatus = remoteStatus === 'successful' ? 'successful' : 'failed';
+        await supabaseAdmin
+          .from('subscription_payments')
+          .update({ status: newStatus, completed_at: new Date().toISOString() })
+          .eq('reference', reference);
+
+        if (newStatus === 'successful') {
+          await activateSubscription(profile.organization_id, payment.plan);
+        }
+        return res.json({ success: true, status: newStatus });
+      }
+    }
+
+    return res.json({ success: true, status: payment.status });
+  } catch (err) {
+    console.error('payment-status error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while checking payment status.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT 8: POST /api/webhooks/lenco
+// ============================================================================
+// Public endpoint (Lenco cannot send an Authorization bearer token), secured
+// instead by verifying the X-Lenco-Signature header per Lenco's documented
+// scheme: HMAC-SHA512 of the raw JSON body, keyed by SHA256(LENCO_API_KEY).
+// ============================================================================
+app.post('/api/webhooks/lenco', async (req, res) => {
+  try {
+    if (!process.env.LENCO_API_KEY) return res.status(500).send('Not configured');
+
+    const webhookHashKey = crypto.createHash('sha256').update(process.env.LENCO_API_KEY).digest('hex');
+    const expectedSignature = crypto
+      .createHmac('sha512', webhookHashKey)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (expectedSignature !== req.headers['x-lenco-signature']) {
+      return res.status(401).send('Invalid signature');
+    }
+
+    const { event, data } = req.body || {};
+    if (!data?.reference) return res.status(200).send('Ignored (no reference)');
+
+    if (event === 'collection.successful') {
+      const { data: payment } = await supabaseAdmin
+        .from('subscription_payments')
+        .select('*')
+        .eq('reference', data.reference)
+        .single();
+
+      if (payment && payment.status !== 'successful') {
+        await supabaseAdmin
+          .from('subscription_payments')
+          .update({ status: 'successful', lenco_reference: data.lencoReference, completed_at: new Date().toISOString() })
+          .eq('reference', data.reference);
+        await activateSubscription(payment.organization_id, payment.plan);
+      }
+    } else if (event === 'collection.failed') {
+      await supabaseAdmin
+        .from('subscription_payments')
+        .update({ status: 'failed', lenco_reference: data.lencoReference })
+        .eq('reference', data.reference);
+    }
+
+    return res.status(200).send('OK');
+  } catch (err) {
+    console.error('lenco webhook error:', err);
+    // Still 200 — Lenco retries on non-2xx for 24h, and a logged server error
+    // here shouldn't cause repeated retries for something already broken.
+    return res.status(200).send('Error logged');
   }
 });
 

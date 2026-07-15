@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from './supabaseClient';
-import { buildDocumentPdf, uploadPdfToStorage } from './pdfGenerator';
+import { buildDocumentPdf, uploadPdfToStorage, fetchImageAsDataUrl } from './pdfGenerator';
 import { queueDocumentOffline } from './offlineSync';
 import { useAuth } from '../context/AuthContext';
+import { planAllows } from './plans';
 
 /**
  * Handles the full lifecycle of creating a document (Invoice/Quotation/
@@ -19,12 +20,17 @@ export function useDocumentSubmission() {
     setSubmitting(true);
     try {
       const syncToken = uuidv4();
+      const logoDataUrl =
+        planAllows(organization, 'custom_branding') && organization?.logo_url && navigator.onLine
+          ? await fetchImageAsDataUrl(organization.logo_url)
+          : null;
       const pdfBlob = buildDocumentPdf({
         businessName: organization?.name,
         businessPhone: organization?.phone,
         tpin: organization?.tpin,
         address: organization?.address,
         banking: organization?.banking_details,
+        logoDataUrl,
         docType: form.docType,
         docId: syncToken.slice(0, 8).toUpperCase(),
         customerName: form.customerName,

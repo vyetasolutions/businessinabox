@@ -11,11 +11,14 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { ExternalLink, UserPlus, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, UserPlus, CheckCircle2, Download, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { BACKEND_URL } from '../lib/supabaseClient';
 import { getCachedDocuments, cacheDocumentsBulk } from '../lib/offlineSync';
 import { useAuth } from '../context/AuthContext';
+import { planAllows } from '../lib/plans';
+import { downloadCsv } from '../lib/csvExport';
+import UpgradePrompt from '../components/UpgradePrompt';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend, Filler);
 
@@ -33,7 +36,7 @@ export default function ManagerDashboard() {
       if (navigator.onLine && organization?.id) {
         const { data, error } = await supabase
           .from('documents')
-          .select('doc_type, total, created_at, customer_name, pdf_url')
+          .select('doc_type, total, created_at, customer_name, pdf_url, items')
           .eq('organization_id', organization.id)
           .order('created_at', { ascending: false })
           .limit(200);
@@ -55,6 +58,8 @@ export default function ManagerDashboard() {
     let collected = 0;
     let outstanding = 0;
     let quotes = 0;
+    let grossProfit = 0;
+    let profitTrackedSales = 0;
     const splitMap = { Invoice: 0, Quotation: 0, Receipt: 0, 'Delivery Note': 0 };
 
     documents.forEach((doc) => {
@@ -64,9 +69,18 @@ export default function ManagerDashboard() {
       if (type === 'Invoice') outstanding += val;
       if (type === 'Quotation') quotes += 1;
       if (splitMap[type] !== undefined) splitMap[type] += 1;
+
+      if ((type === 'Receipt' || type === 'Invoice') && Array.isArray(doc.items)) {
+        doc.items.forEach((item) => {
+          if (item.costPrice !== undefined && item.costPrice !== null) {
+            grossProfit += (Number(item.price) - Number(item.costPrice)) * Number(item.qty);
+            profitTrackedSales += 1;
+          }
+        });
+      }
     });
 
-    return { collected, outstanding, quotes, splitMap };
+    return { collected, outstanding, quotes, grossProfit, profitTrackedSales, splitMap };
   }, [documents]);
 
   const trendData = useMemo(() => {
@@ -115,6 +129,21 @@ export default function ManagerDashboard() {
     plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: '600' } } } }
   };
 
+  const reportsEnabled = planAllows(organization, 'reports');
+  const multiUserEnabled = planAllows(organization, 'multi_user');
+
+  const exportDocumentsCsv = () => {
+    downloadCsv(
+      'vyeta-documents',
+      documents.map((d) => ({
+        Type: d.doc_type || d.docType,
+        Customer: d.customer_name || d.customerName,
+        Date: new Date(d.created_at || d.date).toLocaleDateString(),
+        'Total (K)': d.total
+      }))
+    );
+  };
+
   const handleCreateEmployee = async (e) => {
     e.preventDefault();
     setEmployeeStatus(null);
@@ -149,7 +178,15 @@ export default function ManagerDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="flex justify-end">
+        {reportsEnabled && (
+          <button onClick={exportDocumentsCsv} className="btn-ghost px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm">
+            <Download className="w-4 h-4" /> Export Documents CSV
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-panel p-6 rounded-2xl">
           <span className="section-eyebrow">Total Received</span>
           <h3 className="stat-value">K {metrics.collected.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
@@ -161,6 +198,16 @@ export default function ManagerDashboard() {
         <div className="glass-panel p-6 rounded-2xl">
           <span className="section-eyebrow">Sent Quotes</span>
           <h3 className="stat-value">{metrics.quotes}</h3>
+        </div>
+        <div className="glass-panel p-6 rounded-2xl">
+          <span className="section-eyebrow flex items-center gap-1.5">
+            <TrendingUp className="w-3 h-3" /> Gross Profit
+          </span>
+          {metrics.profitTrackedSales > 0 ? (
+            <h3 className="stat-value">K {metrics.grossProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          ) : (
+            <p className="text-xs text-slate-400 mt-2">Sell items from Stock to see margin here.</p>
+          )}
         </div>
       </div>
 
@@ -207,63 +254,67 @@ export default function ManagerDashboard() {
         </div>
 
         {/* ---- Add Employee ---- */}
-        <div className="glass-panel rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-gold-500" />
-            <h4 className="section-eyebrow">Add Employee</h4>
+        {multiUserEnabled ? (
+          <div className="glass-panel rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-gold-500" />
+              <h4 className="section-eyebrow">Add Employee</h4>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Create a login for a staff member. They'll only be able to make sales and view stock.
+            </p>
+            <form onSubmit={handleCreateEmployee} className="space-y-3">
+              <div>
+                <label className="label-field">Full Name</label>
+                <input
+                  required
+                  value={employeeForm.fullName}
+                  onChange={(e) => setEmployeeForm({ ...employeeForm, fullName: e.target.value })}
+                  className="input-field"
+                  placeholder="e.g., Mwansa Banda"
+                />
+              </div>
+              <div>
+                <label className="label-field">Email (used to log in)</label>
+                <input
+                  type="email"
+                  required
+                  value={employeeForm.email}
+                  onChange={(e) => setEmployeeForm({ ...employeeForm, email: e.target.value })}
+                  className="input-field"
+                  placeholder="staff@yourbusiness.com"
+                />
+              </div>
+              <div>
+                <label className="label-field">Temporary Password</label>
+                <input
+                  type="text"
+                  required
+                  minLength={6}
+                  value={employeeForm.password}
+                  onChange={(e) => setEmployeeForm({ ...employeeForm, password: e.target.value })}
+                  className="input-field"
+                  placeholder="At least 6 characters"
+                />
+              </div>
+
+              {employeeStatus && (
+                <p className={`text-xs font-semibold rounded-lg px-3 py-2 flex items-center gap-2 ${
+                  employeeStatus.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                }`}>
+                  {employeeStatus.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                  {employeeStatus.message}
+                </p>
+              )}
+
+              <button type="submit" disabled={creatingEmployee} className="btn-gold w-full py-3 rounded-xl font-bold disabled:opacity-60">
+                {creatingEmployee ? 'Creating account…' : 'Create Employee Account'}
+              </button>
+            </form>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Create a login for a staff member. They'll only be able to make sales and view stock.
-          </p>
-          <form onSubmit={handleCreateEmployee} className="space-y-3">
-            <div>
-              <label className="label-field">Full Name</label>
-              <input
-                required
-                value={employeeForm.fullName}
-                onChange={(e) => setEmployeeForm({ ...employeeForm, fullName: e.target.value })}
-                className="input-field"
-                placeholder="e.g., Mwansa Banda"
-              />
-            </div>
-            <div>
-              <label className="label-field">Email (used to log in)</label>
-              <input
-                type="email"
-                required
-                value={employeeForm.email}
-                onChange={(e) => setEmployeeForm({ ...employeeForm, email: e.target.value })}
-                className="input-field"
-                placeholder="staff@yourbusiness.com"
-              />
-            </div>
-            <div>
-              <label className="label-field">Temporary Password</label>
-              <input
-                type="text"
-                required
-                minLength={6}
-                value={employeeForm.password}
-                onChange={(e) => setEmployeeForm({ ...employeeForm, password: e.target.value })}
-                className="input-field"
-                placeholder="At least 6 characters"
-              />
-            </div>
-
-            {employeeStatus && (
-              <p className={`text-xs font-semibold rounded-lg px-3 py-2 flex items-center gap-2 ${
-                employeeStatus.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
-              }`}>
-                {employeeStatus.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                {employeeStatus.message}
-              </p>
-            )}
-
-            <button type="submit" disabled={creatingEmployee} className="btn-gold w-full py-3 rounded-xl font-bold disabled:opacity-60">
-              {creatingEmployee ? 'Creating account…' : 'Create Employee Account'}
-            </button>
-          </form>
-        </div>
+        ) : (
+          <UpgradePrompt feature="Adding staff accounts" requiredPlan="business_plus" />
+        )}
       </div>
     </div>
   );

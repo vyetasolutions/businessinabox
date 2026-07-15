@@ -1,25 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, Minus, Trash2, ShoppingCart, ReceiptText } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, ReceiptText, ScanLine } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useDocumentSubmission } from '../lib/useDocumentSubmission';
 import SuccessModal from '../components/SuccessModal';
+import BarcodeScanner from '../components/BarcodeScanner';
 
 export default function EmployeePos() {
   const [query, setQuery] = useState('');
   const [stockResults, setStockResults] = useState([]);
-  const [cart, setCart] = useState([]); // {id, name, price, qty}
+  const [cart, setCart] = useState([]); // {id, name, price, costPrice, qty}
   const [docType, setDocType] = useState('Receipt');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [result, setResult] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   const { submit, submitting } = useDocumentSubmission();
 
   useEffect(() => {
     const search = async () => {
-      let req = supabase.from('inventory').select('id, name, unit_price, quantity_on_hand').order('name').limit(20);
-      if (query.trim()) req = req.ilike('name', `%${query.trim()}%`);
+      let req = supabase.from('inventory').select('id, name, unit_price, cost_price, quantity_on_hand, sku').order('name').limit(20);
+      if (query.trim()) req = req.or(`name.ilike.%${query.trim()}%,sku.ilike.%${query.trim()}%`);
       const { data, error } = await req;
       if (!error) setStockResults(data || []);
     };
@@ -33,7 +35,7 @@ export default function EmployeePos() {
       if (existing) {
         return prev.map((c) => (c.id === item.id ? { ...c, qty: c.qty + 1 } : c));
       }
-      return [...prev, { id: item.id, name: item.name, price: item.unit_price, qty: 1 }];
+      return [...prev, { id: item.id, name: item.name, price: item.unit_price, costPrice: item.cost_price || 0, qty: 1 }];
     });
   };
 
@@ -44,7 +46,7 @@ export default function EmployeePos() {
   const removeFromCart = (id) => setCart((prev) => prev.filter((c) => c.id !== id));
 
   const totals = useMemo(() => {
-    const items = cart.map((c) => ({ desc: c.name, qty: c.qty, price: c.price, total: c.qty * c.price }));
+    const items = cart.map((c) => ({ desc: c.name, qty: c.qty, price: c.price, costPrice: c.costPrice, total: c.qty * c.price }));
     const subtotal = items.reduce((sum, i) => sum + i.total, 0);
     return { items, subtotal };
   }, [cart]);
@@ -99,9 +101,14 @@ export default function EmployeePos() {
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* ---- Stock picker ---- */}
       <div className="lg:col-span-3 space-y-4">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search stock to sell…" className="input-field !pl-9" />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search stock to sell…" className="input-field !pl-9" />
+          </div>
+          <button type="button" onClick={() => setShowScanner(true)} className="btn-ghost px-3 rounded-xl shrink-0" title="Scan barcode">
+            <ScanLine className="w-4 h-4" />
+          </button>
         </div>
         <div className="glass-panel rounded-2xl divide-y divide-slate-200 dark:divide-white/10 max-h-[28rem] overflow-y-auto">
           {stockResults.length === 0 ? (
@@ -209,6 +216,7 @@ export default function EmployeePos() {
       </form>
 
       <SuccessModal result={result} onClose={() => setResult(null)} />
+      {showScanner && <BarcodeScanner onDetected={(code) => { setShowScanner(false); setQuery(code); }} onClose={() => setShowScanner(false)} />}
     </div>
   );
 }

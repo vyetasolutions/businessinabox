@@ -6,25 +6,56 @@ import { supabase } from './supabaseClient';
  * Builds a branded PDF document entirely in the browser (no server round-trip
  * required), so it works even when the device is offline. Returns a Blob.
  */
+/**
+ * Fetches an image URL (e.g. a Supabase Storage logo) and converts it to a
+ * data URL jsPDF can embed. Returns null on any failure so PDF generation
+ * degrades gracefully to a text-only header rather than breaking.
+ */
+export async function fetchImageAsDataUrl(url) {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function buildDocumentPdf(payload) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const marginX = 40;
+  const hasLogo = Boolean(payload.logoDataUrl);
+  const textX = hasLogo ? marginX + 46 : marginX;
 
   // ---- Header ----
   doc.setFillColor(10, 17, 40); // midnight-900
   doc.rect(0, 0, pageWidth, 90, 'F');
 
+  if (hasLogo) {
+    try {
+      doc.addImage(payload.logoDataUrl, 'PNG', marginX, 20, 36, 36);
+    } catch {
+      // if the image fails to decode, fall back silently to text-only header
+    }
+  }
+
   doc.setTextColor(212, 151, 42); // gold-500
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
-  doc.text(payload.businessName || 'My Business', marginX, 40);
+  doc.text(payload.businessName || 'My Business', textX, 40);
 
   doc.setTextColor(230, 230, 235);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   const headerLines = [payload.address, payload.businessPhone, payload.tpin ? `TPIN: ${payload.tpin}` : null].filter(Boolean);
-  doc.text(headerLines.join('   |   '), marginX, 58);
+  doc.text(headerLines.join('   |   '), textX, 58);
 
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
