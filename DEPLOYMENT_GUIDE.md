@@ -13,11 +13,12 @@ vyeta-business-hub/
   supabase_migration_003_performance_fixes.sql  -> run third
   supabase_migration_004_plans_billing.sql      -> run fourth
   supabase_migration_005_fix_plan_values.sql    -> run fifth (bug fix)
-  PLATFORM_DOCUMENTATION.md                     -> architecture, roles, data model, API reference
+  PLATFORM_DOCUMENTATION.md                     -> architecture, roles, data model, billing, API reference
   AUDIT_FINDINGS.md                             -> performance/compliance findings + priorities
+  USER_GUIDE.md                                 -> plain-language guide for Managers and Employees
 ```
 
-This file covers *deploying* the platform. For how it actually works once it's live, see `PLATFORM_DOCUMENTATION.md`.
+This file covers *deploying* the platform. For how it actually works once it's live, see `PLATFORM_DOCUMENTATION.md`. For how to actually use it day to day, see `USER_GUIDE.md` — worth sharing with businesses directly.
 
 ---
 
@@ -86,7 +87,7 @@ Logging in with this account takes you straight to the **Approvals** screen — 
 
 ## PART 3 — Twilio WhatsApp Sandbox (OPTIONAL — currently shelved)
 
-**Skip this entire section for now.** WhatsApp automation was deliberately shelved (see `PLATFORM_DOCUMENTATION.md` §7) — Supabase's Database Webhooks feature hit a setup snag on this project, and the Twilio Sandbox has real limitations for real customer use anyway. None of the rest of the platform depends on this. The "Share on WhatsApp" button people see after generating a document is a simple `wa.me` link that opens their own WhatsApp app directly — it needs no Twilio account, no backend involvement, and works today with zero setup.
+**Skip this entire section for now.** WhatsApp automation was deliberately shelved (see `PLATFORM_DOCUMENTATION.md` §8) — Supabase's Database Webhooks feature hit a setup snag on this project, and the Twilio Sandbox has real limitations for real customer use anyway. None of the rest of the platform depends on this. The "Share on WhatsApp" button people see after generating a document is a simple `wa.me` link that opens their own WhatsApp app directly — it needs no Twilio account, no backend involvement, and works today with zero setup.
 
 Leave `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`, and `BACKEND_SHARED_SECRET` unset in the backend's environment variables in Part 4 — the backend handles their absence gracefully.
 

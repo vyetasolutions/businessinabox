@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   CreditCard,
   MapPin,
-  Receipt
+  Receipt,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -42,7 +43,10 @@ export default function Sidebar({ theme, onToggleTheme, isOnline }) {
     { to: '/customers', label: 'Customers', icon: Users }
   ];
 
-  const platformAdminLinks = [{ to: '/admin/approvals', label: 'Approvals', icon: ShieldCheck }];
+  const platformAdminLinks = [
+    { to: '/admin/approvals', label: 'Approvals', icon: ShieldCheck },
+    { to: '/admin/billing', label: 'Billing Overview', icon: BarChart3 }
+  ];
 
   const links = role === 'platform_admin' ? platformAdminLinks : isManager ? managerLinks : employeeLinks;
 

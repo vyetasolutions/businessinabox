@@ -77,3 +77,20 @@ export function daysLeftInTrial(organization) {
   const ms = new Date(organization.trial_ends_at).getTime() - Date.now();
   return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 }
+
+/**
+ * The single source of truth for "does this business currently have paid
+ * access?" — checked lazily on every protected page load rather than via a
+ * cron job flipping a status column, since a free-tier stack shouldn't
+ * depend on a scheduled job existing to enforce billing.
+ */
+export function hasActiveAccess(organization) {
+  if (!organization) return false;
+  const status = organization.subscription_status;
+  if (status === 'trialing') return !isTrialExpired(organization);
+  if (status === 'active') {
+    if (!organization.current_period_end) return true; // defensive default
+    return new Date(organization.current_period_end) > new Date();
+  }
+  return false; // 'past_due' or 'canceled'
+}

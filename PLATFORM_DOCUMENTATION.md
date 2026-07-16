@@ -80,22 +80,39 @@ user experience.
 ## 4. Data model
 
 **`organizations`** — one row per business ("tenant"). Holds branding info
-(name, phone, TPIN, address, banking details) that gets printed on every
-generated PDF, plus a `status` (`pending` / `active` / `suspended`) that
-gates whether the business can use the platform at all.
+(name, phone, TPIN, address, banking details, logo), plus **two independent
+gates**: `status` (`pending` / `active` / `suspended` — Vyeta's manual vetting
+of the business) and `plan` + `subscription_status` + `trial_ends_at` +
+`current_period_end` (billing — see §6). A business can be approved but
+locked out for non-payment at the same time; these don't move together.
 
 **`profiles`** — one row per human, extending Supabase's built-in
 `auth.users`. Carries `organization_id` (which business they belong to) and
 `role` (`platform_admin` / `manager` / `employee`).
 
-**`inventory`** — stock items, scoped to an organization.
+**`inventory`** — stock items, scoped to an organization (and optionally a
+`branch_id`). Carries both `unit_price` (sell price) and `cost_price`, so
+margin can be shown per item and, cumulatively, on the dashboard.
 
 **`documents`** — every Invoice/Quotation/Receipt/Delivery Note ever
 generated. Includes a `sync_token` (a UUID) used to safely re-submit a
-document created while offline without ever creating a duplicate.
+document created while offline without ever creating a duplicate. Each line
+item in `items` (jsonb) snapshots `costPrice` at the time of sale *only*
+when it came from a POS sale against inventory — free-form Manager invoices
+don't have a known cost, so margin reporting only covers POS-driven sales.
+
+**`branches`** — a business's physical locations. Every organization gets
+one `is_primary` branch automatically; additional branches are a Business
+Plus feature, enforced in RLS (`branches_insert_gated`).
+
+**`expenses`** — simple expense records (category, amount, date), a
+Professional+ feature.
+
+**`subscription_payments`** — one row per Lenco mobile money collection
+attempt, successful or not. This is the payment audit trail — see §6.
 
 **`whatsapp_messages_queue`** — present in the schema for a WhatsApp
-delivery feature that is currently **shelved** (see §7). Harmless to leave
+delivery feature that is currently **shelved** (see §8). Harmless to leave
 in place; nothing writes meaningful data to it beyond the automatic trigger
 that populates it, and nothing currently sends from it.
 
@@ -108,7 +125,9 @@ that populates it, and nothing currently sends from it.
 2. The backend creates the `organizations` row (`status = 'pending'`), the
    Auth user, and their `profiles` row (`role = 'manager'`) — using the
    service_role key, since a public visitor obviously can't be trusted with
-   that key themselves.
+   that key themselves. The organization also gets `plan = 'starter'`,
+   `subscription_status = 'trialing'`, and `trial_ends_at = now() + 14 days`
+   automatically.
 3. The Manager's login works immediately, but every page they visit shows a
    **Pending Approval** screen instead of real content (`ProtectedRoute.jsx`
    checks `organization.status !== 'active'`).
@@ -117,10 +136,11 @@ that populates it, and nothing currently sends from it.
    documents or inventory, even via a direct API call.
 5. A Platform Admin reviews pending businesses at `/admin/approvals` and
    approves or rejects. Approving flips `status` to `active`; rejecting
-   flips it to `suspended`. Either way, this is a single `UPDATE` on
-   `organizations`, so it's instant — no separate notification step exists
-   yet (see Known Limitations).
-6. Once `active`, the Manager's next page load just works.
+   flips it to `suspended`.
+6. Once `status = 'active'`, the Manager sees the real app — but now the
+   *separate* billing gate (§6) takes over: their 14-day Starter trial is
+   running, and once it (or a paid period) ends, `SubscriptionRequired.jsx`
+   takes over from `PendingApproval.jsx` as the blocking screen.
 
 **Bootstrapping problem**: someone has to be the very first Platform Admin,
 and nobody can self-signup into that role (correctly — it would defeat the
@@ -130,7 +150,71 @@ self-signup.
 
 ---
 
-## 6. Offline-first behavior
+## 6. Billing & subscriptions — how it actually works
+
+**This is not auto-renewing, recurring billing.** There is no card on file,
+no automatic monthly charge. Each payment is a one-off mobile money
+collection the Manager triggers themselves from `/billing`. A successful
+payment sets `current_period_end = now() + 30 days`. When that date passes
+with no new payment, access lapses automatically — the business isn't
+charged again, they're just locked out until they pay again.
+
+**How the lapse is enforced — deliberately without a cron job.** A
+free-tier stack shouldn't depend on a scheduled job existing and firing
+reliably to gate revenue. Instead, `hasActiveAccess(organization)` in
+`frontend/src/lib/plans.js` computes access *live*, on every protected page
+load: trialing businesses check `trial_ends_at` against now; active
+businesses check `current_period_end` against now. Nothing needs to run in
+the background for this to work correctly — the check just re-evaluates
+every time. The tradeoff: `subscription_status` in the database can still
+say `'active'` for a business whose period has technically already ended
+(the column itself isn't flipped to `'past_due'` automatically) — the
+*access decision* is always correct, but the raw column value can lag
+reality slightly until their next payment attempt or an admin looks
+closely. The Admin Billing Overview (`/admin/billing`) shows the computed
+access alongside the raw status specifically so this gap is visible, not
+hidden.
+
+**Where to see who's paid up:** `/admin/billing` (Platform Admin only) —
+shows every business's plan, billing status, trial/renewal date, computed
+access (paid vs. locked out), estimated monthly revenue, and full payment
+history from `subscription_payments`. This is the operational source of
+truth; querying Supabase directly works too but shouldn't be necessary
+day-to-day.
+
+**The payment flow, end to end:**
+1. Manager picks a plan on `/billing`, enters their mobile money number + network.
+2. Frontend calls `POST /api/billing/initiate-payment` (server prices the
+   plan — a payment amount is never trusted from the browser).
+3. Backend calls Lenco's Collections API, records a `subscription_payments`
+   row (`status: 'pending'`), returns a reference to the frontend.
+4. Frontend polls `GET /api/billing/payment-status/:reference` every 3
+   seconds while the customer approves on their phone.
+5. Lenco sends a webhook to `POST /api/webhooks/lenco` on success/failure
+   (signature-verified) — this is the primary path. The polling in step 4
+   is a fallback in case the webhook is delayed, re-querying Lenco directly.
+6. On success, `activateSubscription()` sets `plan`, `subscription_status =
+   'active'`, and `current_period_end = now() + 30 days` on the organization.
+
+**Feature gating**, separate from the access gate above: `plan_allows()`
+(Postgres, migration 004) and `planAllows()` (frontend, `lib/plans.js`) are
+two independently-maintained copies of the same feature matrix — inventory/
+delivery notes/expenses/reports need Professional+; multi-user/multi-branch/
+custom branding need Business Plus. The frontend copy is UX only (hides
+buttons); the Postgres copy is the real enforcement. If you change pricing
+or features, **both must be updated** — there's no single source of truth
+enforced by tooling, only by convention (flagged in `AUDIT_FINDINGS.md`).
+
+**What's genuinely missing, on purpose (not yet built):** payment retry
+reminders, dunning emails/SMS before a trial or period ends, prorated
+plan changes mid-cycle, refunds, and invoice/receipt generation for the
+subscription payment itself (as opposed to the business's own customer
+documents, which is unrelated and already works). These are reasonable
+next steps once real usage data shows which of them actually matters.
+
+---
+
+## 7. Offline-first behavior
 
 The frontend is a installable Progressive Web App (`vite-plugin-pwa`). Two
 independent mechanisms make it usable with no signal:
@@ -163,7 +247,7 @@ reconciliation (see Known Limitations).
 
 ---
 
-## 7. WhatsApp integration (currently shelved)
+## 8. WhatsApp integration (currently shelved)
 
 The schema, database trigger, and backend endpoint
 (`POST /api/trigger-whatsapp`) for automatically sending customers a
@@ -187,7 +271,7 @@ WhatsApp Business API approval instead of the Sandbox for real customer use.
 
 ---
 
-## 8. API reference (backend)
+## 9. API reference (backend)
 
 All endpoints live in `backend/index.js`. Base URL is your Render backend
 service URL.
@@ -196,10 +280,15 @@ service URL.
 |---|---|---|---|
 | `GET` | `/health` | none | Uptime check / keep-alive ping target |
 | `POST` | `/api/signup-business` | none (public) | Creates a new pending organization + Manager |
-| `POST` | `/api/create-employee` | Bearer token, must be `manager`/`platform_admin` | Creates an Employee login under the caller's organization |
+| `POST` | `/api/create-employee` | Bearer token, must be `manager`/`platform_admin` | Creates an Employee login under the caller's organization (Business Plus only) |
 | `GET` | `/api/admin/pending-organizations` | Bearer token, must be `platform_admin` | Lists businesses awaiting approval |
 | `POST` | `/api/admin/approve-organization` | Bearer token, must be `platform_admin` | Approves (`active`) or rejects (`suspended`) a business |
-| `POST` | `/api/trigger-whatsapp` | shared-secret header | Twilio send — currently unused, see §7 |
+| `POST` | `/api/billing/initiate-payment` | Bearer token, must be `manager`/`platform_admin` | Starts a Lenco mobile money collection for a plan |
+| `GET` | `/api/billing/payment-status/:reference` | Bearer token | Polls/reconciles a payment's status |
+| `POST` | `/api/webhooks/lenco` | Lenco signature header | Lenco's server-to-server payment confirmation |
+| `GET` | `/api/admin/organizations` | Bearer token, must be `platform_admin` | Billing overview — every business's plan/status |
+| `GET` | `/api/admin/subscription-payments` | Bearer token, must be `platform_admin` | Payment history across all businesses |
+| `POST` | `/api/trigger-whatsapp` | shared-secret header | Twilio send — currently unused, see §8 |
 
 "Bearer token" means the frontend sends the logged-in user's Supabase
 session `access_token` in the `Authorization` header; the backend verifies
@@ -207,7 +296,7 @@ it with `supabase.auth.getUser(token)` before checking the caller's role.
 
 ---
 
-## 9. Known limitations (honest list, not marketing copy)
+## 10. Known limitations (honest list, not marketing copy)
 
 - **No forced password rotation for Employees.** A Manager sets an
   Employee's initial password directly; the Employee is never prompted to
@@ -223,11 +312,24 @@ it with `supabase.auth.getUser(token)` before checking the caller's role.
   Both are reachable by anyone who has the URL; nothing currently stops
   automated spam signups or password-guessing attempts beyond what Render's
   and Supabase's own infrastructure-level protections provide.
-- **Offline stock reconciliation isn't built.** See §6.
+- **Offline stock reconciliation isn't built.** See §7.
 - **The admin approvals list does a small per-business lookup loop**
   (fetching each pending business's Manager name/email individually) rather
   than one batched query. At the scale of "a handful of new businesses
   awaiting review at a time" this is irrelevant; it would need rewriting if
   hundreds of businesses ever signed up in the same hour.
+- **No dunning/renewal reminders.** A business finds out their trial or
+  paid period has ended when they next open the app and see
+  `SubscriptionRequired.jsx` — there's no advance-warning email/SMS at, say,
+  3 days before expiry. Worth building once you have real churn data to
+  justify the effort.
+- **Margin/gross profit only reflects POS-driven sales.** Free-form
+  documents from `DocumentGenerator.jsx` (the Manager's non-POS invoice
+  flow) don't know an item's cost price, so they're excluded from the
+  Gross Profit figure on the dashboard by design, not by bug.
+- **Plan feature gates are duplicated, not shared.** `plan_allows()` in
+  Postgres and `planAllows()` in the frontend encode the same rules
+  independently. Changing pricing/features means updating both by hand —
+  see §6.
 - See `AUDIT_FINDINGS.md` for the fuller performance/compliance pass and
   prioritized recommendations.

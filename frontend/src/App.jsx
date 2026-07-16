@@ -17,6 +17,7 @@ import Customers from './pages/Customers';
 import Settings from './pages/Settings';
 import EmployeePos from './pages/EmployeePos';
 import AdminApprovals from './pages/AdminApprovals';
+import AdminBilling from './pages/AdminBilling';
 import Billing from './pages/Billing';
 import Branches from './pages/Branches';
 import Expenses from './pages/Expenses';
@@ -180,9 +181,20 @@ export default function App() {
       />
 
       <Route
+        path="/admin/billing"
+        element={
+          <ProtectedRoute allow={['platform_admin']}>
+            <AppShell title="Billing Overview" breadcrumb="Platform Admin">
+              <AdminBilling />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/billing"
         element={
-          <ProtectedRoute allow={['manager']}>
+          <ProtectedRoute allow={['manager']} skipSubscriptionCheck>
             <AppShell title="Billing" breadcrumb="Plan & Payments">
               <Billing />
             </AppShell>

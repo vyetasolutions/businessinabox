@@ -619,6 +619,63 @@ app.post('/api/admin/approve-organization', async (req, res) => {
   }
 });
 
+// ============================================================================
+// ENDPOINT 9: GET /api/admin/organizations
+// ============================================================================
+// Platform Admin billing overview — every business, their plan, and their
+// current billing status. This is the "who's paid up" view.
+// ============================================================================
+app.get('/api/admin/organizations', async (req, res) => {
+  const admin = await requirePlatformAdmin(req, res);
+  if (!admin) return;
+
+  try {
+    const { data: orgs, error } = await supabaseAdmin
+      .from('organizations')
+      .select('id, name, status, plan, subscription_status, trial_ends_at, current_period_end, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) return res.status(500).json({ success: false, error: error.message });
+
+    return res.json({ success: true, organizations: orgs });
+  } catch (err) {
+    console.error('admin/organizations error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while listing businesses.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT 10: GET /api/admin/subscription-payments
+// ============================================================================
+// Recent payment history across all businesses, for reconciliation.
+// ============================================================================
+app.get('/api/admin/subscription-payments', async (req, res) => {
+  const admin = await requirePlatformAdmin(req, res);
+  if (!admin) return;
+
+  try {
+    const { data: payments, error } = await supabaseAdmin
+      .from('subscription_payments')
+      .select('id, organization_id, plan, amount, reference, status, phone, operator, created_at, completed_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) return res.status(500).json({ success: false, error: error.message });
+
+    const orgIds = [...new Set(payments.map((p) => p.organization_id))];
+    const { data: orgs } = await supabaseAdmin.from('organizations').select('id, name').in('id', orgIds);
+    const orgNameById = Object.fromEntries((orgs || []).map((o) => [o.id, o.name]));
+
+    return res.json({
+      success: true,
+      payments: payments.map((p) => ({ ...p, organizationName: orgNameById[p.organization_id] || 'Unknown' }))
+    });
+  } catch (err) {
+    console.error('admin/subscription-payments error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while listing payments.' });
+  }
+});
+
 // ---------------------------------------------------------------------------
 
 app.get('/health', (req, res) => {
