@@ -7,9 +7,18 @@
 -- ----------------------------------------------------------------------------
 -- 1. Plan + subscription fields on organizations
 -- ----------------------------------------------------------------------------
+-- NOTE: `plan` already exists from the original schema (default 'free',
+-- constrained to 'free'/'pro'). `ADD COLUMN IF NOT EXISTS` would silently
+-- skip redefining it, leaving the old constraint and values in place — so
+-- we explicitly drop the old constraint and migrate the data instead.
+alter table public.organizations drop constraint if exists organizations_plan_check;
+update public.organizations set plan = 'starter' where plan = 'free';
+update public.organizations set plan = 'business_plus' where plan = 'pro';
+alter table public.organizations alter column plan set default 'starter';
+alter table public.organizations add constraint organizations_plan_check
+  check (plan in ('starter', 'professional', 'business_plus'));
+
 alter table public.organizations
-  add column if not exists plan text not null default 'starter'
-    check (plan in ('starter', 'professional', 'business_plus')),
   add column if not exists subscription_status text not null default 'trialing'
     check (subscription_status in ('trialing', 'active', 'past_due', 'canceled')),
   add column if not exists trial_ends_at timestamptz not null default (now() + interval '14 days'),

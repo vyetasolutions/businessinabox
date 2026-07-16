@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Smartphone, Clock, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase, BACKEND_URL } from '../lib/supabaseClient';
-import { PLANS, PLAN_ORDER, daysLeftInTrial, isTrialExpired } from '../lib/plans';
+import { PLANS, PLAN_ORDER, getPlanConfig, daysLeftInTrial, isTrialExpired } from '../lib/plans';
 import { useAuth } from '../context/AuthContext';
 
 const OPERATORS = [
@@ -47,7 +47,7 @@ export default function Billing() {
       const data = await res.json();
       if (data.success && data.status === 'successful') {
         setStage('success');
-        setMessage(`You're now on the ${PLANS[selectedPlan].label} plan.`);
+        setMessage(`You're now on the ${getPlanConfig(selectedPlan).label} plan.`);
         await refreshOrganization();
         return;
       }
@@ -104,7 +104,7 @@ export default function Billing() {
       <div className="glass-panel rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="section-eyebrow">Current Plan</span>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">{PLANS[currentPlan].label}</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">{getPlanConfig(currentPlan).label}</h3>
           {trialActive && (
             <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" /> {trialDays} day{trialDays === 1 ? '' : 's'} left in your free trial
@@ -183,7 +183,7 @@ export default function Billing() {
                 <div className="flex items-center gap-2">
                   <Smartphone className="w-4 h-4 text-gold-500" />
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Pay K{PLANS[selectedPlan].price} — {PLANS[selectedPlan].label}
+                    Pay K{getPlanConfig(selectedPlan).price} — {getPlanConfig(selectedPlan).label}
                   </h3>
                 </div>
                 <div>

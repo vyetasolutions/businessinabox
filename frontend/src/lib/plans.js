@@ -32,6 +32,17 @@ export const PLANS = {
 export const PLAN_ORDER = ['starter', 'professional', 'business_plus'];
 
 /**
+ * Always returns a valid plan config, even if the organization somehow has
+ * an unrecognized value in `plan` (e.g. stale data, a migration hiccup).
+ * Never index PLANS[...] directly with a value that came from the database —
+ * use this instead, so a bad value degrades to Starter's display rather than
+ * crashing the whole page.
+ */
+export function getPlanConfig(planKey) {
+  return PLANS[planKey] || PLANS.starter;
+}
+
+/**
  * Client-side mirror of the database's plan_allows() function — used only to
  * decide what the UI shows/hides. The real enforcement lives in Postgres RLS
  * and the backend; this just avoids showing a Manager a button that would

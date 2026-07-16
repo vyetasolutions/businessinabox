@@ -12,6 +12,7 @@ vyeta-business-hub/
   supabase_migration_002_signup_approval.sql    -> run second
   supabase_migration_003_performance_fixes.sql  -> run third
   supabase_migration_004_plans_billing.sql      -> run fourth
+  supabase_migration_005_fix_plan_values.sql    -> run fifth (bug fix)
   PLATFORM_DOCUMENTATION.md                     -> architecture, roles, data model, API reference
   AUDIT_FINDINGS.md                             -> performance/compliance findings + priorities
 ```
@@ -45,7 +46,8 @@ git push origin main
 4. Now open a **second** new query, paste in the entire contents of `supabase_migration_002_signup_approval.sql`, and run it. This adds the business self-signup + approval workflow (see "Self-service signup" section below) on top of the base schema.
 5. Open a **third** new query, paste in the entire contents of `supabase_migration_003_performance_fixes.sql`, and run it. This fixes a search-indexing issue found during a later performance audit — without it, the Stock and Customer search boxes still work, just slower as data grows.
 6. Open a **fourth** new query, paste in the entire contents of `supabase_migration_004_plans_billing.sql`, and run it. This adds Starter/Professional/Business Plus plans, Lenco mobile money billing, cost price/margin tracking, multi-branch support, and expense tracking.
-7. Go to **Project Settings → API**. Copy three values — you'll need them shortly:
+7. Open a **fifth** new query, paste in the entire contents of `supabase_migration_005_fix_plan_values.sql`, and run it. This fixes a bug where existing businesses were left on the old 'free'/'pro' plan values instead of the new Starter/Professional/Business Plus ones, which crashed the Billing page.
+8. Go to **Project Settings → API**. Copy three values — you'll need them shortly:
    - `Project URL`
    - `anon public` key
    - `service_role` key (⚠️ keep this one secret — it goes ONLY in the backend, never the frontend)
