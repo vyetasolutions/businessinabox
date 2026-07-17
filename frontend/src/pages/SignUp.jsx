@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { BACKEND_URL } from '../lib/supabaseClient';
 import BrandMark from '../components/BrandMark';
 import Footer from '../components/Footer';
+import PasswordInput from '../components/PasswordInput';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ export default function SignUp() {
           </div>
           <div>
             <label className="label-field">Password</label>
-            <input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="At least 6 characters" className="input-field" />
+            <PasswordInput required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="At least 6 characters" />
           </div>
 
           {error && <p className="text-xs font-semibold text-rose-500 bg-rose-500/10 rounded-lg px-3 py-2">{error}</p>}

@@ -48,7 +48,12 @@ git push origin main
 5. Open a **third** new query, paste in the entire contents of `supabase_migration_003_performance_fixes.sql`, and run it. This fixes a search-indexing issue found during a later performance audit — without it, the Stock and Customer search boxes still work, just slower as data grows.
 6. Open a **fourth** new query, paste in the entire contents of `supabase_migration_004_plans_billing.sql`, and run it. This adds Starter/Professional/Business Plus plans, Lenco mobile money billing, cost price/margin tracking, multi-branch support, and expense tracking.
 7. Open a **fifth** new query, paste in the entire contents of `supabase_migration_005_fix_plan_values.sql`, and run it. This fixes a bug where existing businesses were left on the old 'free'/'pro' plan values instead of the new Starter/Professional/Business Plus ones, which crashed the Billing page.
-8. Go to **Project Settings → API**. Copy three values — you'll need them shortly:
+8. Go to **Authentication → URL Configuration** and set:
+   - **Site URL**: your live frontend URL (e.g. `https://vyetasuite.onrender.com`)
+   - **Redirect URLs**: add your live frontend URL with a wildcard, e.g. `https://vyetasuite.onrender.com/**`
+
+   Without this, password reset links (and any other Supabase auth email link) redirect to `localhost` instead of your live site — the code already builds the correct link dynamically, but Supabase only honors it if the URL is on this allowlist; otherwise it silently falls back to the Site URL default.
+9. Go to **Project Settings → API**. Copy three values — you'll need them shortly:
    - `Project URL`
    - `anon public` key
    - `service_role` key (⚠️ keep this one secret — it goes ONLY in the backend, never the frontend)

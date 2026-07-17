@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { planAllows } from '../lib/plans';
 import UpgradePrompt from '../components/UpgradePrompt';
+import FeaturePreview from '../components/FeaturePreview';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { downloadCsv } from '../lib/csvExport';
 
@@ -44,8 +45,46 @@ export default function Inventory() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
+  const SAMPLE_ROWS = [
+    { name: 'Cooking Oil 2L', category: 'Groceries', price: '85.00', margin: '32%', stock: 14 },
+    { name: 'Bag of Mealie Meal 25kg', category: 'Groceries', price: '210.00', margin: '18%', stock: 6 },
+    { name: 'Bottled Water 500ml (case)', category: 'Beverages', price: '65.00', margin: '40%', stock: 22 },
+    { name: 'Airtime Voucher K20', category: 'Airtime', price: '20.00', margin: '5%', stock: 50 }
+  ];
+
   if (!inventoryEnabled) {
-    return <UpgradePrompt feature="Inventory management" requiredPlan="professional" />;
+    return (
+      <FeaturePreview
+        feature="Inventory management"
+        requiredPlan="professional"
+        mockup={
+          <div className="glass-panel rounded-2xl overflow-hidden">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-100/70 dark:bg-white/5 text-xs text-slate-600 dark:text-slate-400 uppercase font-bold">
+                <tr>
+                  <th className="px-6 py-4">Item</th>
+                  <th className="px-6 py-4">Category</th>
+                  <th className="px-6 py-4 text-right">Price</th>
+                  <th className="px-6 py-4 text-right">Margin</th>
+                  <th className="px-6 py-4 text-right">In Stock</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                {SAMPLE_ROWS.map((r) => (
+                  <tr key={r.name}>
+                    <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-100">{r.name}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{r.category}</td>
+                    <td className="px-6 py-4 text-right font-semibold">K {r.price}</td>
+                    <td className="px-6 py-4 text-right font-bold text-emerald-500">{r.margin}</td>
+                    <td className="px-6 py-4 text-right font-bold">{r.stock}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        }
+      />
+    );
   }
 
   const openNewForm = () => {

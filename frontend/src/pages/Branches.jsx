@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { planAllows } from '../lib/plans';
 import UpgradePrompt from '../components/UpgradePrompt';
+import FeaturePreview from '../components/FeaturePreview';
 
 export default function Branches() {
   const { organization } = useAuth();
@@ -24,7 +25,35 @@ export default function Branches() {
   }, [organization?.id]);
 
   if (!planAllows(organization, 'multi_branch')) {
-    return <UpgradePrompt feature="Multiple branches" requiredPlan="business_plus" />;
+    const SAMPLE_BRANCHES = [
+      { name: 'Cairo Road Branch', address: 'Cairo Road, Lusaka', primary: true },
+      { name: 'Kitwe Branch', address: 'Independence Ave, Kitwe', primary: false },
+      { name: 'Ndola Branch', address: 'Broadway, Ndola', primary: false }
+    ];
+    return (
+      <FeaturePreview
+        feature="Multiple branches"
+        requiredPlan="business_plus"
+        mockup={
+          <div className="max-w-3xl mx-auto glass-panel rounded-2xl divide-y divide-slate-200 dark:divide-white/10">
+            {SAMPLE_BRANCHES.map((b) => (
+              <div key={b.name} className="p-5 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gold-500/10 text-gold-500 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    {b.name}
+                    {b.primary && <Star className="w-3.5 h-3.5 text-gold-500 fill-gold-500" />}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{b.address}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      />
+    );
   }
 
   const handleAdd = async (e) => {

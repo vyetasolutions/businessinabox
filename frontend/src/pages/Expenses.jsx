@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { planAllows } from '../lib/plans';
 import UpgradePrompt from '../components/UpgradePrompt';
+import FeaturePreview from '../components/FeaturePreview';
 import { downloadCsv } from '../lib/csvExport';
 
 const CATEGORIES = ['Rent', 'Utilities', 'Stock Purchase', 'Transport', 'Salaries', 'Marketing', 'Other'];
@@ -31,8 +32,39 @@ export default function Expenses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organization?.id]);
 
+  const SAMPLE_EXPENSES = [
+    { category: 'Rent', description: 'Shop rent — July', amount: '2,500.00', date: '01 Jul 2026' },
+    { category: 'Stock Purchase', description: 'Restock from supplier', amount: '4,200.00', date: '05 Jul 2026' },
+    { category: 'Transport', description: 'Delivery costs', amount: '350.00', date: '09 Jul 2026' },
+    { category: 'Utilities', description: 'ZESCO + water', amount: '680.00', date: '12 Jul 2026' }
+  ];
+
   if (!enabled) {
-    return <UpgradePrompt feature="Expense tracking" requiredPlan="professional" />;
+    return (
+      <FeaturePreview
+        feature="Expense tracking"
+        requiredPlan="professional"
+        mockup={
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="glass-panel rounded-2xl p-6">
+              <span className="section-eyebrow">Total Expenses</span>
+              <h3 className="stat-value">K 7,730.00</h3>
+            </div>
+            <div className="glass-panel rounded-2xl divide-y divide-slate-200 dark:divide-white/10">
+              {SAMPLE_EXPENSES.map((e) => (
+                <div key={e.description} className="p-4 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-slate-100">{e.category}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{e.description} · {e.date}</p>
+                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white">K {e.amount}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        }
+      />
+    );
   }
 
   const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
