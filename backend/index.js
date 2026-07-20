@@ -1,11 +1,6 @@
 // ============================================================================
 // VYETA BUSINESS HUB — BACKEND (Node.js + Express)
 // ============================================================================
-// Two endpoints only, by design (keeps the free-tier Render web service light):
-//   POST /api/create-employee   -> Manager provisions a new Employee account
-//   POST /api/trigger-whatsapp  -> Supabase Database Webhook -> Twilio WhatsApp
-//   GET  /health                -> Render health check / free-tier "keep-alive" ping
-// ============================================================================
 
 require('dotenv').config();
 const express = require('express');
@@ -18,9 +13,6 @@ const { initiateMobileMoneyCollection, getCollectionStatusByReference } = requir
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
-// ---------------------------------------------------------------------------
-// CORS — only allow the frontend origins you list in ALLOWED_ORIGINS
-// ---------------------------------------------------------------------------
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
   .map((s) => s.trim())
@@ -29,7 +21,6 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow server-to-server calls (e.g. the Supabase webhook) which send no Origin header
       if (!origin) return callback(null, true);
       if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -39,28 +30,17 @@ app.use(
   })
 );
 
-// ---------------------------------------------------------------------------
-// Supabase Admin client — uses the SERVICE ROLE KEY. This key bypasses RLS,
-// so it must NEVER be sent to the frontend. It only lives here, on the server.
-// ---------------------------------------------------------------------------
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-// ---------------------------------------------------------------------------
-// Twilio client (WhatsApp Sandbox on the free tier)
-// ---------------------------------------------------------------------------
 const twilioClient =
   process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
     ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
     : null;
 
-// ---------------------------------------------------------------------------
-// Subscription plan prices, in Zambian Kwacha. Defined server-side only — a
-// payment amount must never be trusted from the browser.
-// ---------------------------------------------------------------------------
 const PLAN_PRICES = {
   starter: 149,
   professional: 299,
@@ -68,32 +48,75 @@ const PLAN_PRICES = {
 };
 
 // ---------------------------------------------------------------------------
-// Helper: format a Zambian-style phone number into E.164 for WhatsApp.
-// Accepts inputs like "0977123456", "+260977123456", "260977123456", "097-712-3456"
+// Vyeta Credits integration config. Requires Node 18+ for global fetch.
 // ---------------------------------------------------------------------------
+const VYETA_URL = process.env.VYETA_URL;
+const VYETA_ANON_KEY = process.env.VYETA_ANON_KEY;
+const VYETA_API_KEY = process.env.VYETA_API_KEY;
+const VYETA_WEBHOOK_SECRET = process.env.VYETA_WEBHOOK_SECRET;
+
+async function callVyetaRPC(rpcName, body) {
+  const res = await fetch(`${VYETA_URL}/rest/v1/rpc/${rpcName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: VYETA_ANON_KEY,
+      Authorization: `Bearer ${VYETA_ANON_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Vyeta RPC ${rpcName} failed: ${text}`);
+  return text ? JSON.parse(text) : null;
+}
+
+async function createVyetaIntent({ organizationId, organizationName, plan, amount, purpose, extraMetadata }) {
+  if (!VYETA_URL || !VYETA_ANON_KEY || !VYETA_API_KEY) return null;
+  try {
+    const result = await callVyetaRPC('external_create_charge_intent', {
+      p_api_key: VYETA_API_KEY,
+      p_external_ref: organizationId,
+      p_amount_zmw: amount,
+      p_purpose: purpose,
+      p_metadata: { organization_name: organizationName, plan, ...extraMetadata },
+    });
+    return result?.[0]?.tx_ref || null;
+  } catch (err) {
+    console.error('createVyetaIntent failed (non-fatal):', err.message);
+    return null;
+  }
+}
+
+async function completeVyetaIntent(txRef, status, externalReference, failureReason) {
+  if (!txRef || !VYETA_URL || !VYETA_ANON_KEY || !VYETA_API_KEY) return;
+  try {
+    await callVyetaRPC('external_complete_charge_intent', {
+      p_api_key: VYETA_API_KEY,
+      p_tx_ref: txRef,
+      p_status: status,
+      p_external_reference: externalReference || null,
+      p_failure_reason: failureReason || null,
+    });
+  } catch (err) {
+    console.error('completeVyetaIntent failed (non-fatal):', err.message);
+  }
+}
+
 function formatPhoneForWhatsapp(rawPhone) {
   if (!rawPhone) return null;
   let digits = rawPhone.replace(/[^0-9]/g, '');
-
   if (digits.startsWith('00')) digits = digits.slice(2);
-
   if (digits.startsWith('260')) {
     // already has country code
   } else if (digits.startsWith('0')) {
     digits = '260' + digits.slice(1);
   } else if (digits.length === 9) {
-    // e.g. 977123456 with no leading 0 or country code
     digits = '260' + digits;
   }
-
   if (digits.length < 11) return null;
   return `whatsapp:+${digits}`;
 }
 
-// ---------------------------------------------------------------------------
-// Helper: verify the caller's Supabase access token and load their profile.
-// Used to confirm "is this really a Manager?" before provisioning an Employee.
-// ---------------------------------------------------------------------------
 async function getRequestingProfile(req) {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -120,11 +143,6 @@ async function getRequestingProfile(req) {
 // ============================================================================
 // ENDPOINT 1: POST /api/create-employee
 // ============================================================================
-// Called by the Manager Dashboard's "Add Employee" form.
-// The frontend never talks to Supabase Auth Admin directly (that would require
-// exposing the service_role key in the browser) — instead it calls this
-// endpoint, which does the privileged work on the server.
-// ============================================================================
 app.post('/api/create-employee', async (req, res) => {
   try {
     const { email, password, fullName } = req.body || {};
@@ -136,7 +154,6 @@ app.post('/api/create-employee', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
     }
 
-    // 1. Confirm the requester is an authenticated Manager (or Platform Admin)
     const { profile, error: authError } = await getRequestingProfile(req);
     if (authError) {
       return res.status(401).json({ success: false, error: authError });
@@ -148,9 +165,6 @@ app.post('/api/create-employee', async (req, res) => {
       return res.status(403).json({ success: false, error: 'Your account is inactive. Contact support.' });
     }
 
-    // Employee accounts are a Business Plus feature. Checked here explicitly
-    // because this endpoint uses the service_role key and therefore bypasses
-    // the database's own RLS-based gating.
     const { data: org, error: orgFetchError } = await supabaseAdmin
       .from('organizations')
       .select('plan')
@@ -166,11 +180,10 @@ app.post('/api/create-employee', async (req, res) => {
         .json({ success: false, error: 'Adding staff accounts is a Business Plus feature. Upgrade your plan to add employees.' });
     }
 
-    // 2. Create the Auth user using the Admin API (service_role key required)
     const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // skip email verification — this isn't a public self-signup
+      email_confirm: true,
       user_metadata: { full_name: fullName, role: 'employee' },
     });
 
@@ -180,7 +193,6 @@ app.post('/api/create-employee', async (req, res) => {
 
     const newUserId = created.user.id;
 
-    // 3. Insert their profile row, tied to the Manager's organization, as 'employee'
     const { error: profileInsertError } = await supabaseAdmin.from('profiles').insert({
       id: newUserId,
       organization_id: profile.organization_id,
@@ -190,7 +202,6 @@ app.post('/api/create-employee', async (req, res) => {
     });
 
     if (profileInsertError) {
-      // Roll back the auth user so we don't leave an orphaned login with no profile
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
       return res.status(500).json({ success: false, error: 'Failed to link employee profile: ' + profileInsertError.message });
     }
@@ -208,23 +219,15 @@ app.post('/api/create-employee', async (req, res) => {
 // ============================================================================
 // ENDPOINT 2: POST /api/trigger-whatsapp
 // ============================================================================
-// Configure this URL as a Supabase Database Webhook:
-//   Dashboard -> Database -> Webhooks -> Create a new webhook
-//   Table: whatsapp_messages_queue   Event: INSERT
-//   URL: https://your-backend.onrender.com/api/trigger-whatsapp
-//   HTTP Headers: x-webhook-secret: <same value as BACKEND_SHARED_SECRET>
-// ============================================================================
 app.post('/api/trigger-whatsapp', async (req, res) => {
   try {
-    // 1. Verify the shared secret so random internet traffic can't spam Twilio
     const providedSecret = req.headers['x-webhook-secret'];
     if (!process.env.BACKEND_SHARED_SECRET || providedSecret !== process.env.BACKEND_SHARED_SECRET) {
       return res.status(401).json({ success: false, error: 'Invalid webhook secret.' });
     }
 
-    // 2. Supabase sends { type, table, record, old_record, schema }
     const payload = req.body || {};
-    const record = payload.record || payload; // fallback for manual/test calls
+    const record = payload.record || payload;
 
     const queueId = record.id;
     const toPhoneRaw = record.to_phone;
@@ -247,7 +250,6 @@ app.post('/api/trigger-whatsapp', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Could not parse phone number.' });
     }
 
-    // 3. Send via Twilio WhatsApp Sandbox
     try {
       const message = await twilioClient.messages.create({
         from: process.env.TWILIO_WHATSAPP_FROM,
@@ -278,12 +280,6 @@ app.post('/api/trigger-whatsapp', async (req, res) => {
 // ============================================================================
 // ENDPOINT 3: POST /api/signup-business
 // ============================================================================
-// Public endpoint — a new business creates its own account. The organization
-// starts as 'pending' (enforced in the database, not just here) until a
-// Platform Admin approves it via /api/admin/approve-organization. The Manager
-// account itself works immediately, but their dashboard shows a "pending
-// approval" screen until then (see frontend PendingApproval.jsx).
-// ============================================================================
 app.post('/api/signup-business', async (req, res) => {
   try {
     const { businessName, fullName, email, password, phone } = req.body || {};
@@ -295,7 +291,6 @@ app.post('/api/signup-business', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
     }
 
-    // 1. Create the organization as 'pending'
     const { data: org, error: orgError } = await supabaseAdmin
       .from('organizations')
       .insert({ name: businessName, phone: phone || null, status: 'pending' })
@@ -306,7 +301,6 @@ app.post('/api/signup-business', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Could not create business: ' + orgError.message });
     }
 
-    // 2. Create the Auth user
     const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -315,12 +309,10 @@ app.post('/api/signup-business', async (req, res) => {
     });
 
     if (createError) {
-      // Roll back the organization so we don't leave an orphaned pending business
       await supabaseAdmin.from('organizations').delete().eq('id', org.id);
       return res.status(400).json({ success: false, error: createError.message });
     }
 
-    // 3. Create their profile as 'manager' of the new organization
     const { error: profileError } = await supabaseAdmin.from('profiles').insert({
       id: created.user.id,
       organization_id: org.id,
@@ -346,8 +338,6 @@ app.post('/api/signup-business', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Shared helper: activate a plan on an organization after a successful payment
-// ---------------------------------------------------------------------------
 async function activateSubscription(organizationId, plan) {
   const periodEnd = new Date();
   periodEnd.setDate(periodEnd.getDate() + 30);
@@ -358,11 +348,7 @@ async function activateSubscription(organizationId, plan) {
 }
 
 // ============================================================================
-// ENDPOINT 6: POST /api/billing/initiate-payment
-// ============================================================================
-// Called from the Billing page. Charges the business's own mobile money
-// number via Lenco for their selected plan, server-priced (never trust a
-// client-sent amount for a real payment).
+// ENDPOINT 6: POST /api/billing/initiate-payment (Lenco path)
 // ============================================================================
 app.post('/api/billing/initiate-payment', async (req, res) => {
   try {
@@ -380,11 +366,22 @@ app.post('/api/billing/initiate-payment', async (req, res) => {
       return res.status(400).json({ success: false, error: 'A valid phone number and mobile money network are required.' });
     }
     if (!process.env.LENCO_API_KEY) {
-      return res.status(500).json({ success: false, error: 'Payments are not configured on the server yet.' });
+      return res.status(500).json({ success: false, error: 'Card/mobile money checkout is not live yet. Use manual payment instead.' });
     }
 
     const amount = PLAN_PRICES[plan];
     const reference = `vyeta-${profile.organization_id}-${Date.now()}`;
+
+    const { data: org } = await supabaseAdmin.from('organizations').select('name').eq('id', profile.organization_id).single();
+
+    const vyetaTxRef = await createVyetaIntent({
+      organizationId: profile.organization_id,
+      organizationName: org?.name || 'Unknown',
+      plan,
+      amount,
+      purpose: 'business_suite_subscription',
+      extraMetadata: { payment_method: 'lenco' },
+    });
 
     const { error: insertError } = await supabaseAdmin.from('subscription_payments').insert({
       organization_id: profile.organization_id,
@@ -393,7 +390,9 @@ app.post('/api/billing/initiate-payment', async (req, res) => {
       reference,
       phone,
       operator,
-      status: 'pending'
+      status: 'pending',
+      payment_method: 'lenco',
+      vyeta_tx_ref: vyetaTxRef,
     });
     if (insertError) {
       return res.status(500).json({ success: false, error: 'Could not start payment: ' + insertError.message });
@@ -403,6 +402,7 @@ app.post('/api/billing/initiate-payment', async (req, res) => {
 
     if (!lencoResult.status) {
       await supabaseAdmin.from('subscription_payments').update({ status: 'failed' }).eq('reference', reference);
+      await completeVyetaIntent(vyetaTxRef, 'failed', null, lencoResult.message || 'Lenco rejected the request');
       return res.status(400).json({ success: false, error: lencoResult.message || 'Payment could not be started.' });
     }
 
@@ -414,10 +414,14 @@ app.post('/api/billing/initiate-payment', async (req, res) => {
       .update({ lenco_reference: lencoReference, status: lencoStatus === 'failed' ? 'failed' : 'pending' })
       .eq('reference', reference);
 
+    if (lencoStatus === 'failed') {
+      await completeVyetaIntent(vyetaTxRef, 'failed', lencoReference, 'Lenco reported failure at initiation');
+    }
+
     return res.json({
       success: true,
       reference,
-      status: lencoStatus, // 'pending' | 'pay-offline' | 'otp-required' | 'failed'
+      status: lencoStatus,
       message:
         lencoStatus === 'pay-offline'
           ? 'Check your phone to authorize the payment.'
@@ -430,11 +434,71 @@ app.post('/api/billing/initiate-payment', async (req, res) => {
 });
 
 // ============================================================================
-// ENDPOINT 7: GET /api/billing/payment-status/:reference
+// ENDPOINT 6b: POST /api/billing/initiate-manual-payment
 // ============================================================================
-// Polled by the Billing page while waiting for the customer to authorize on
-// their phone. Falls back to re-querying Lenco directly if our own webhook
-// hasn't updated the record yet (webhooks can lag).
+app.post('/api/billing/initiate-manual-payment', async (req, res) => {
+  try {
+    const { profile, error: authError } = await getRequestingProfile(req);
+    if (authError) return res.status(401).json({ success: false, error: authError });
+    if (!['manager', 'platform_admin'].includes(profile.role)) {
+      return res.status(403).json({ success: false, error: 'Only Managers can manage billing.' });
+    }
+
+    const { plan, manual_reference, operator, phone } = req.body || {};
+    if (!PLAN_PRICES[plan]) {
+      return res.status(400).json({ success: false, error: 'Invalid plan selected.' });
+    }
+    if (!manual_reference || !manual_reference.trim()) {
+      return res.status(400).json({ success: false, error: 'Please provide your payment reference/transaction ID.' });
+    }
+
+    const amount = PLAN_PRICES[plan];
+    const reference = `vyeta-manual-${profile.organization_id}-${Date.now()}`;
+
+    const { data: org } = await supabaseAdmin.from('organizations').select('name').eq('id', profile.organization_id).single();
+
+    const vyetaTxRef = await createVyetaIntent({
+      organizationId: profile.organization_id,
+      organizationName: org?.name || 'Unknown',
+      plan,
+      amount,
+      purpose: 'business_suite_subscription',
+      extraMetadata: { payment_method: 'manual', manual_reference: manual_reference.trim() },
+    });
+
+    if (!vyetaTxRef) {
+      return res.status(500).json({ success: false, error: 'Could not reach the payment ledger. Please try again shortly.' });
+    }
+
+    const { error: insertError } = await supabaseAdmin.from('subscription_payments').insert({
+      organization_id: profile.organization_id,
+      plan,
+      amount,
+      reference,
+      phone: phone || null,
+      operator: operator || null,
+      status: 'pending',
+      payment_method: 'manual',
+      manual_reference: manual_reference.trim(),
+      vyeta_tx_ref: vyetaTxRef,
+    });
+    if (insertError) {
+      return res.status(500).json({ success: false, error: 'Could not record payment: ' + insertError.message });
+    }
+
+    return res.json({
+      success: true,
+      reference,
+      message: 'Payment request submitted. Your plan will activate automatically once verified.',
+    });
+  } catch (err) {
+    console.error('initiate-manual-payment error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while starting payment.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT 7: GET /api/billing/payment-status/:reference
 // ============================================================================
 app.get('/api/billing/payment-status/:reference', async (req, res) => {
   try {
@@ -446,16 +510,14 @@ app.get('/api/billing/payment-status/:reference', async (req, res) => {
       .from('subscription_payments')
       .select('*')
       .eq('reference', reference)
-      .eq('organization_id', profile.organization_id) // can only check your own org's payments
+      .eq('organization_id', profile.organization_id)
       .single();
 
     if (error || !payment) {
       return res.status(404).json({ success: false, error: 'Payment record not found.' });
     }
 
-    // Still pending after a few seconds? Ask Lenco directly rather than only
-    // waiting on the webhook, which may be delayed.
-    if (payment.status === 'pending' && process.env.LENCO_API_KEY) {
+    if (payment.status === 'pending' && payment.payment_method === 'lenco' && process.env.LENCO_API_KEY) {
       const lencoResult = await getCollectionStatusByReference(reference);
       const remoteStatus = lencoResult.data?.status;
       if (remoteStatus === 'successful' || remoteStatus === 'failed') {
@@ -467,6 +529,9 @@ app.get('/api/billing/payment-status/:reference', async (req, res) => {
 
         if (newStatus === 'successful') {
           await activateSubscription(profile.organization_id, payment.plan);
+          await completeVyetaIntent(payment.vyeta_tx_ref, 'completed', reference);
+        } else {
+          await completeVyetaIntent(payment.vyeta_tx_ref, 'failed', reference, 'Lenco reported failure on poll');
         }
         return res.json({ success: true, status: newStatus });
       }
@@ -481,10 +546,6 @@ app.get('/api/billing/payment-status/:reference', async (req, res) => {
 
 // ============================================================================
 // ENDPOINT 8: POST /api/webhooks/lenco
-// ============================================================================
-// Public endpoint (Lenco cannot send an Authorization bearer token), secured
-// instead by verifying the X-Lenco-Signature header per Lenco's documented
-// scheme: HMAC-SHA512 of the raw JSON body, keyed by SHA256(LENCO_API_KEY).
 // ============================================================================
 app.post('/api/webhooks/lenco', async (req, res) => {
   try {
@@ -516,25 +577,83 @@ app.post('/api/webhooks/lenco', async (req, res) => {
           .update({ status: 'successful', lenco_reference: data.lencoReference, completed_at: new Date().toISOString() })
           .eq('reference', data.reference);
         await activateSubscription(payment.organization_id, payment.plan);
+        await completeVyetaIntent(payment.vyeta_tx_ref, 'completed', data.lencoReference);
       }
     } else if (event === 'collection.failed') {
+      const { data: payment } = await supabaseAdmin
+        .from('subscription_payments')
+        .select('*')
+        .eq('reference', data.reference)
+        .single();
+
       await supabaseAdmin
         .from('subscription_payments')
         .update({ status: 'failed', lenco_reference: data.lencoReference })
         .eq('reference', data.reference);
+
+      if (payment) {
+        await completeVyetaIntent(payment.vyeta_tx_ref, 'failed', data.lencoReference, 'Lenco reported failure via webhook');
+      }
     }
 
     return res.status(200).send('OK');
   } catch (err) {
     console.error('lenco webhook error:', err);
-    // Still 200 — Lenco retries on non-2xx for 24h, and a logged server error
-    // here shouldn't cause repeated retries for something already broken.
     return res.status(200).send('Error logged');
   }
 });
 
-// ---------------------------------------------------------------------------
-// Helper: verify the caller is a Platform Admin. Reuses getRequestingProfile.
+// ============================================================================
+// ENDPOINT 11: POST /api/webhooks/vyeta
+// ============================================================================
+app.post('/api/webhooks/vyeta', async (req, res) => {
+  try {
+    if (!VYETA_WEBHOOK_SECRET) return res.status(500).send('Not configured');
+
+    const rawBody = JSON.stringify(req.body);
+    const expectedSignature = crypto
+      .createHmac('sha256', VYETA_WEBHOOK_SECRET.trim())
+      .update(rawBody)
+      .digest('hex');
+
+    const providedSignature = req.headers['x-vyeta-signature'];
+    if (providedSignature !== expectedSignature) {
+      return res.status(401).send('Invalid signature');
+    }
+
+    const { tx_ref, status, metadata } = req.body || {};
+    if (!tx_ref) return res.status(200).send('Ignored (no tx_ref)');
+
+    const { data: payment } = await supabaseAdmin
+      .from('subscription_payments')
+      .select('*')
+      .eq('vyeta_tx_ref', tx_ref)
+      .single();
+
+    if (!payment) return res.status(200).send('Ignored (no matching payment)');
+
+    if (status === 'completed') {
+      if (payment.status !== 'successful') {
+        await supabaseAdmin
+          .from('subscription_payments')
+          .update({ status: 'successful', completed_at: new Date().toISOString() })
+          .eq('vyeta_tx_ref', tx_ref);
+        await activateSubscription(payment.organization_id, metadata?.plan || payment.plan);
+      }
+    } else if (status === 'failed') {
+      await supabaseAdmin
+        .from('subscription_payments')
+        .update({ status: 'failed' })
+        .eq('vyeta_tx_ref', tx_ref);
+    }
+
+    return res.status(200).send('OK');
+  } catch (err) {
+    console.error('vyeta webhook error:', err);
+    return res.status(200).send('Error logged');
+  }
+});
+
 // ---------------------------------------------------------------------------
 async function requirePlatformAdmin(req, res) {
   const { profile, error } = await getRequestingProfile(req);
@@ -565,8 +684,6 @@ app.get('/api/admin/pending-organizations', async (req, res) => {
 
     if (error) return res.status(500).json({ success: false, error: error.message });
 
-    // Attach the Manager's name/email for each pending org so the admin
-    // knows who they're approving.
     const orgsWithManager = await Promise.all(
       orgs.map(async (org) => {
         const { data: profile } = await supabaseAdmin
@@ -622,9 +739,6 @@ app.post('/api/admin/approve-organization', async (req, res) => {
 // ============================================================================
 // ENDPOINT 9: GET /api/admin/organizations
 // ============================================================================
-// Platform Admin billing overview — every business, their plan, and their
-// current billing status. This is the "who's paid up" view.
-// ============================================================================
 app.get('/api/admin/organizations', async (req, res) => {
   const admin = await requirePlatformAdmin(req, res);
   if (!admin) return;
@@ -647,8 +761,6 @@ app.get('/api/admin/organizations', async (req, res) => {
 // ============================================================================
 // ENDPOINT 10: GET /api/admin/subscription-payments
 // ============================================================================
-// Recent payment history across all businesses, for reconciliation.
-// ============================================================================
 app.get('/api/admin/subscription-payments', async (req, res) => {
   const admin = await requirePlatformAdmin(req, res);
   if (!admin) return;
@@ -656,7 +768,7 @@ app.get('/api/admin/subscription-payments', async (req, res) => {
   try {
     const { data: payments, error } = await supabaseAdmin
       .from('subscription_payments')
-      .select('id, organization_id, plan, amount, reference, status, phone, operator, created_at, completed_at')
+      .select('id, organization_id, plan, amount, reference, status, phone, operator, payment_method, manual_reference, vyeta_tx_ref, created_at, completed_at')
       .order('created_at', { ascending: false })
       .limit(200);
 
