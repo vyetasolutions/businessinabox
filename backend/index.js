@@ -10,6 +10,7 @@ const { createClient } = require('@supabase/supabase-js');
 const twilio = require('twilio');
 const { initiateMobileMoneyCollection, getCollectionStatusByReference } = require('./lenco');
 
+const { extractText, guessStructuredFields } = require('./ocr');
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
@@ -785,6 +786,187 @@ app.get('/api/admin/subscription-payments', async (req, res) => {
   } catch (err) {
     console.error('admin/subscription-payments error:', err);
     return res.status(500).json({ success: false, error: 'Unexpected server error while listing payments.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+
+const MONTHLY_OCR_LIMIT = 200;
+
+async function getOcrUsageThisMonth(organizationId) {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const { count, error } = await supabaseAdmin
+    .from('document_uploads')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', organizationId)
+    .in('extraction_method', ['ocr', 'ocr-fallback'])
+    .gte('created_at', startOfMonth.toISOString());
+
+  if (error) throw error;
+  return count || 0;
+}
+
+async function assertOcrQuotaAvailable(organizationId) {
+  const used = await getOcrUsageThisMonth(organizationId);
+  if (used >= MONTHLY_OCR_LIMIT) {
+    const err = new Error(
+      `Monthly scanning limit reached (${MONTHLY_OCR_LIMIT} documents). This resets on the 1st of next month — contact support if you need a higher limit.`
+    );
+    err.isQuotaError = true;
+    throw err;
+  }
+}
+
+// ============================================================================
+// ENDPOINT: GET /api/ocr/usage
+// ============================================================================
+// Powers the "X of 200 scans used this month" indicator on the Scan page.
+// ============================================================================
+app.get('/api/ocr/usage', async (req, res) => {
+  try {
+    const { profile, error: authError } = await getRequestingProfile(req);
+    if (authError) return res.status(401).json({ success: false, error: authError });
+
+    const used = await getOcrUsageThisMonth(profile.organization_id);
+    return res.json({ success: true, used, limit: MONTHLY_OCR_LIMIT, remaining: Math.max(0, MONTHLY_OCR_LIMIT - used) });
+  } catch (err) {
+    console.error('ocr/usage error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while checking usage.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT: POST /api/ocr/process-upload
+// ============================================================================
+app.post('/api/ocr/process-upload', async (req, res) => {
+  try {
+    const { profile, error: authError } = await getRequestingProfile(req);
+    if (authError) return res.status(401).json({ success: false, error: authError });
+    if (!['manager', 'platform_admin'].includes(profile.role)) {
+      return res.status(403).json({ success: false, error: 'Only Managers can scan documents.' });
+    }
+
+    const { uploadId } = req.body || {};
+    if (!uploadId) return res.status(400).json({ success: false, error: 'uploadId is required.' });
+
+    const { data: org } = await supabaseAdmin.from('organizations').select('plan').eq('id', profile.organization_id).single();
+    if (!org || org.plan !== 'business_plus') {
+      return res.status(403).json({ success: false, error: 'Document scanning is a Business Plus feature.' });
+    }
+
+    const { data: upload, error: fetchError } = await supabaseAdmin
+      .from('document_uploads')
+      .select('*')
+      .eq('id', uploadId)
+      .eq('organization_id', profile.organization_id)
+      .single();
+
+    if (fetchError || !upload) {
+      return res.status(404).json({ success: false, error: 'Upload not found.' });
+    }
+
+    await supabaseAdmin.from('document_uploads').update({ status: 'processing' }).eq('id', uploadId);
+
+    try {
+      const { data: fileBlob, error: downloadError } = await supabaseAdmin.storage.from('uploads').download(upload.file_path);
+      if (downloadError) throw downloadError;
+
+      const buffer = Buffer.from(await fileBlob.arrayBuffer());
+      const { text, method } = await extractText(buffer, upload.file_type, {
+        onBeforeOcrCall: () => assertOcrQuotaAvailable(profile.organization_id)
+      });
+
+      const updatePayload = {
+        extracted_text: text,
+        extraction_method: method,
+        processed_at: new Date().toISOString()
+      };
+
+      if (upload.pipeline === 'structured') {
+        updatePayload.extracted_fields = guessStructuredFields(text);
+        updatePayload.status = 'needs_review';
+      } else {
+        updatePayload.status = 'completed';
+      }
+
+      const { data: updated, error: updateError } = await supabaseAdmin
+        .from('document_uploads')
+        .update(updatePayload)
+        .eq('id', uploadId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      return res.json({ success: true, upload: updated });
+    } catch (processingError) {
+      await supabaseAdmin
+        .from('document_uploads')
+        .update({ status: 'failed', error_message: processingError.message })
+        .eq('id', uploadId);
+
+      const statusCode = processingError.isQuotaError ? 429 : 500;
+      return res
+        .status(statusCode)
+        .json({ success: false, error: processingError.message, isQuotaError: !!processingError.isQuotaError });
+    }
+  } catch (err) {
+    console.error('process-upload error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while processing the upload.' });
+  }
+});
+
+// ============================================================================
+// ENDPOINT: POST /api/ocr/commit-expense
+// ============================================================================
+app.post('/api/ocr/commit-expense', async (req, res) => {
+  try {
+    const { profile, error: authError } = await getRequestingProfile(req);
+    if (authError) return res.status(401).json({ success: false, error: authError });
+    if (!['manager', 'platform_admin'].includes(profile.role)) {
+      return res.status(403).json({ success: false, error: 'Only Managers can record expenses.' });
+    }
+
+    const { uploadId, category, description, amount, expense_date } = req.body || {};
+    if (!uploadId || !category || !amount || !expense_date) {
+      return res.status(400).json({ success: false, error: 'category, amount and expense_date are required.' });
+    }
+
+    const { data: upload } = await supabaseAdmin
+      .from('document_uploads')
+      .select('id, organization_id')
+      .eq('id', uploadId)
+      .eq('organization_id', profile.organization_id)
+      .single();
+    if (!upload) return res.status(404).json({ success: false, error: 'Upload not found.' });
+
+    const { data: expense, error: expenseError } = await supabaseAdmin
+      .from('expenses')
+      .insert({
+        organization_id: profile.organization_id,
+        category,
+        description: description || null,
+        amount,
+        expense_date,
+        created_by: profile.id
+      })
+      .select()
+      .single();
+
+    if (expenseError) return res.status(500).json({ success: false, error: expenseError.message });
+
+    await supabaseAdmin
+      .from('document_uploads')
+      .update({ status: 'completed', linked_expense_id: expense.id })
+      .eq('id', uploadId);
+
+    return res.json({ success: true, expense });
+  } catch (err) {
+    console.error('commit-expense error:', err);
+    return res.status(500).json({ success: false, error: 'Unexpected server error while saving the expense.' });
   }
 });
 

@@ -21,6 +21,8 @@ import AdminBilling from './pages/AdminBilling';
 import Billing from './pages/Billing';
 import Branches from './pages/Branches';
 import Expenses from './pages/Expenses';
+import DocumentScanner from './pages/DocumentScanner';
+import DocumentVault from './pages/DocumentVault';
 import NotificationBell from './components/NotificationBell';
 import { useAuth } from './context/AuthContext';
 import { initOfflineSyncListener } from './lib/offlineSync';
@@ -219,6 +221,28 @@ export default function App() {
           <ProtectedRoute allow={['manager']}>
             <AppShell title="Expenses" breadcrumb="Spending">
               <Expenses />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/scan"
+        element={
+          <ProtectedRoute allow={['manager']}>
+            <AppShell title="Scan Documents" breadcrumb="Document Intelligence">
+              <DocumentScanner />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/vault"
+        element={
+          <ProtectedRoute allow={['manager']}>
+            <AppShell title="Document Vault" breadcrumb="Document Intelligence">
+              <DocumentVault />
             </AppShell>
           </ProtectedRoute>
         }

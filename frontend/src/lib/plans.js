@@ -1,6 +1,7 @@
 // Mirrors the feature matrix enforced in supabase_migration_004_plans_billing.sql
-// (see the public.plan_allows() function). If you change pricing or features,
-// change both places.
+// and supabase_migration_006_ocr_document_intelligence.sql (see the
+// public.plan_allows() function). If you change pricing or features, change
+// both places.
 
 export const PLANS = {
   starter: {
@@ -24,7 +25,15 @@ export const PLANS = {
     label: 'Business Plus',
     price: 599,
     tagline: 'Recommended for established businesses',
-    features: ['Everything in Professional', 'Multi-user access', 'Multiple branches', 'Advanced reporting', 'Priority support', 'Custom branding'],
+    features: [
+      'Everything in Professional',
+      'Multi-user access',
+      'Multiple branches',
+      'Advanced reporting',
+      'Priority support',
+      'Custom branding',
+      'Document scanning (OCR)'
+    ],
     docTypes: ['Invoice', 'Quotation', 'Receipt', 'Delivery Note']
   }
 };
@@ -59,6 +68,7 @@ export function planAllows(organization, feature) {
     case 'multi_user':
     case 'multi_branch':
     case 'custom_branding':
+    case 'ocr_scanning':
       return plan === 'business_plus';
     default:
       return false;

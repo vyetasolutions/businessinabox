@@ -1,7 +1,7 @@
 {
   "name": "vyeta-business-hub-backend",
   "version": "1.0.0",
-  "description": "Lightweight Node.js/Express backend for Vyeta Business Hub — handles secure employee provisioning and WhatsApp document delivery via Twilio.",
+  "description": "Lightweight Node.js/Express backend for Vyeta Business Hub — handles secure employee provisioning, WhatsApp document delivery, Lenco billing, and document intelligence (OCR).",
   "main": "index.js",
   "type": "commonjs",
   "engines": {
@@ -16,6 +16,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "twilio": "^5.3.0"
+    "twilio": "^5.3.0",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.8.0"
   }
 }

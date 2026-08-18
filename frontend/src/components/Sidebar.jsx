@@ -16,7 +16,9 @@ import {
   Receipt,
   BarChart3,
   MoreHorizontal,
-  X
+  X,
+  ScanLine,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,7 +40,9 @@ export default function Sidebar({ theme, onToggleTheme, isOnline }) {
     { to: '/expenses', label: 'Expenses', icon: Receipt },
     { to: '/branches', label: 'Branches', icon: MapPin },
     { to: '/billing', label: 'Billing', icon: CreditCard },
-    { to: '/settings', label: 'Business Profile', icon: SettingsIcon }
+    { to: '/settings', label: 'Business Profile', icon: SettingsIcon },
+    { to: '/scan', label: 'Scan', icon: ScanLine },
+    { to: '/vault', label: 'Vault', icon: FileText }
   ];
 
   const employeeLinks = [
